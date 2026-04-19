@@ -1,0 +1,21 @@
+# Environments
+venv/
+env/
+.env
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+dist/
+build/
+.npm/
+package-lock.json
+
+# IDEs
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db

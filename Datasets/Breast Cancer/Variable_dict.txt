@@ -1,0 +1,14 @@
+a) mean radius (mean of distances from center to points on the perimeter) - decimal
+b) mean texture (standard deviation of gray-scale values) - decimal
+c) mean perimeter -decimal
+d) mean area -decimal
+e) mean smoothness (local variation in radius lengths) - decimal
+f) Diagnosis (malignant = 1, benign = 0)
+
+All feature values are recoded with four significant digits.
+
+Missing attribute values: none
+
+Class distribution: 357 benign, 212 malignant
+link to data - 
+https://www.kaggle.com/datasets/merishnasuwal/breast-cancer-prediction-dataset

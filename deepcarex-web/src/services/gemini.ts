@@ -19,6 +19,13 @@ export type CPOActionResponse = {
     time: string;
     patient_burden: string;
   };
+  optimizer_trace?: {
+    environment: string;
+    reward_function: string;
+    candidate_count: number;
+    selected_candidate_index: number;
+    selection_reason: string;
+  };
 };
 
 function cleanJsonResponse(text: string): string {
@@ -33,6 +40,30 @@ function cleanJsonResponse(text: string): string {
     }
     return clean.trim();
 }
+
+const CPO_ACTIONS = ['Order Test', 'Prescribe', 'Refer', 'Escalate', 'Wait'] as const;
+
+type CPOCandidateAction = {
+  action: CPOActionResponse['action'];
+  specific_detail: string;
+  reasoning: string;
+  expected_reward_impact: {
+    accuracy: string;
+    cost: string;
+    time: string;
+    patient_burden: string;
+  };
+};
+
+type CPOCriticResponse = {
+  scores: {
+    candidate_index: number;
+    total_reward: number;
+    rationale: string;
+  }[];
+  selected_candidate_index: number;
+  selection_reason: string;
+};
 
 const getMockResponse = (diseaseName: string, classes: string[], isHighRisk: boolean = true): DiagnosisResult => {
     return {
@@ -223,6 +254,123 @@ Respond ONLY with a valid JSON format matching this exact schema:
         cost: "-Low",
         time: "-Low",
         patient_burden: "-Low"
+      }
+    };
+  }
+};
+
+export const runMetaOptimizedCPOPathway = async (
+  apiKey: string,
+  patientState: { demographics: string; symptoms: string; priorResults: string },
+  historyOfActions: string[]
+): Promise<CPOActionResponse> => {
+  let model: any = null;
+  try {
+    if (!apiKey || apiKey.trim() === "") throw new Error("API key missing. Falling back.");
+    const genAI = new GoogleGenerativeAI(apiKey);
+    model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+  } catch {
+    // Fallback is handled in the catch below.
+  }
+
+  const historyStr = historyOfActions.length > 0
+    ? `\nPrior Actions Taken in this session:\n${historyOfActions.join('\n')}`
+    : '';
+
+  const plannerPrompt = `You are the Planner agent in a Meta-style Agent Optimizer Environment for clinical pathways.
+Generate exactly 3 candidate next actions for this patient.
+
+Patient State:
+Demographics: ${patientState.demographics}
+Symptoms: ${patientState.symptoms}
+Prior Results / History: ${patientState.priorResults}
+${historyStr}
+
+Constraints:
+- Candidate actions must use only this action set: [${CPO_ACTIONS.join(', ')}]
+- Optimize reward: +diagnostic_accuracy, -cost, -time, -patient_burden
+- Keep actions clinically plausible and specific
+
+Respond ONLY with JSON:
+{
+  "candidates": [
+    {
+      "action": "Order Test" | "Prescribe" | "Refer" | "Escalate" | "Wait",
+      "specific_detail": "string",
+      "reasoning": "string",
+      "expected_reward_impact": {
+        "accuracy": "string",
+        "cost": "string",
+        "time": "string",
+        "patient_burden": "string"
+      }
+    }
+  ]
+}`;
+
+  try {
+    const plannerResult = await model.generateContent(plannerPrompt);
+    const plannerText = plannerResult.response.text();
+    const plannerJson = JSON.parse(cleanJsonResponse(plannerText)) as { candidates: CPOCandidateAction[] };
+    const candidates = (plannerJson.candidates || []).slice(0, 3);
+
+    if (!Array.isArray(candidates) || candidates.length === 0) {
+      throw new Error("Planner returned no candidates.");
+    }
+
+    const criticPrompt = `You are the Critic/Selector agent in a Meta-style Agent Optimizer Environment.
+Score each candidate using this weighted reward function:
+Reward = 0.45*AccuracyGain - 0.20*Cost - 0.20*Time - 0.15*PatientBurden
+
+Patient State:
+Demographics: ${patientState.demographics}
+Symptoms: ${patientState.symptoms}
+Prior Results / History: ${patientState.priorResults}
+${historyStr}
+
+Candidate actions:
+${candidates.map((c, idx) => `${idx}: ${JSON.stringify(c)}`).join('\n')}
+
+Output ONLY valid JSON:
+{
+  "scores": [
+    { "candidate_index": number, "total_reward": number, "rationale": "string" }
+  ],
+  "selected_candidate_index": number,
+  "selection_reason": "string"
+}`;
+
+    const criticResult = await model.generateContent(criticPrompt);
+    const criticText = criticResult.response.text();
+    const criticJson = JSON.parse(cleanJsonResponse(criticText)) as CPOCriticResponse;
+
+    const chosenIndex = Math.max(0, Math.min(candidates.length - 1, criticJson.selected_candidate_index ?? 0));
+    const chosen = candidates[chosenIndex];
+
+    return {
+      action: chosen.action,
+      specific_detail: chosen.specific_detail,
+      reasoning: chosen.reasoning,
+      expected_reward_impact: chosen.expected_reward_impact,
+      optimizer_trace: {
+        environment: "Meta Agent Optimizer v1 (Planner-Critic-Selector)",
+        reward_function: "0.45*AccuracyGain - 0.20*Cost - 0.20*Time - 0.15*PatientBurden",
+        candidate_count: candidates.length,
+        selected_candidate_index: chosenIndex,
+        selection_reason: criticJson.selection_reason || "Selected candidate with highest projected reward."
+      }
+    };
+  } catch (error: any) {
+    console.warn("Meta optimizer CPO failed, falling back to baseline CPO/simulation.", error?.message);
+    const fallback = await runCPOPathway(apiKey, patientState, historyOfActions);
+    return {
+      ...fallback,
+      optimizer_trace: {
+        environment: "Meta Agent Optimizer v1 (Fallback)",
+        reward_function: "0.45*AccuracyGain - 0.20*Cost - 0.20*Time - 0.15*PatientBurden",
+        candidate_count: 1,
+        selected_candidate_index: 0,
+        selection_reason: "Fallback mode engaged due to API/parse issue; returned safest baseline action."
       }
     };
   }

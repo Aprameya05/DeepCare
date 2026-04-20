@@ -1,4 +1,5 @@
-import { useState, useCallback, FormEvent, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import type { FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UploadCloud, CheckCircle, Activity, Key, Loader2, ArrowLeft } from 'lucide-react';

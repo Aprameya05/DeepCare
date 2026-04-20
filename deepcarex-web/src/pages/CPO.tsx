@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { runCPOPathway } from '../services/gemini';
+import { runCPOPathway, runMetaOptimizedCPOPathway } from '../services/gemini';
 import type { CPOActionResponse } from '../services/gemini';
 import { 
   Activity, ArrowRight, Brain, AlertTriangle, Stethoscope, 
-  Pill, FileText, ArrowUpCircle, Clock, ShieldCheck, ChevronRight
+  Pill, FileText, ArrowUpCircle, Clock, ShieldCheck, ChevronRight, Cpu
 } from 'lucide-react';
 
 const predefinedCases = [
@@ -41,6 +41,7 @@ export const CPO = () => {
   
   const [isLoading, setIsLoading] = useState(false);
   const [outcomeInput, setOutcomeInput] = useState('');
+  const [useMetaOptimizer, setUseMetaOptimizer] = useState(true);
   
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -80,7 +81,9 @@ export const CPO = () => {
   const fetchNextAction = async (currentHistory: string[]) => {
     setIsLoading(true);
     try {
-      const response = await runCPOPathway(apiKey, { demographics, symptoms, priorResults }, currentHistory);
+      const response = useMetaOptimizer
+        ? await runMetaOptimizedCPOPathway(apiKey, { demographics, symptoms, priorResults }, currentHistory)
+        : await runCPOPathway(apiKey, { demographics, symptoms, priorResults }, currentHistory);
       
       setInteractionLog(prev => [...prev, { type: 'agent', content: response }]);
       
@@ -132,6 +135,10 @@ export const CPO = () => {
         <p className="text-xl text-gray-400">
           Agent-driven decision making maximizing diagnostic accuracy while minimizing time, cost, and patient burden.
         </p>
+        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-cyan-500/40 bg-cyan-500/10 px-4 py-1.5 text-xs text-cyan-300">
+          <Cpu className="w-4 h-4" />
+          {useMetaOptimizer ? 'Meta Agent Optimizer Environment: Active' : 'Baseline Single-Agent Mode'}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -204,6 +211,23 @@ export const CPO = () => {
                   Initialize Pathway Agent
                 </span>
               </button>
+
+              <label className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 px-4 py-3">
+                <div>
+                  <p className="text-sm text-white">Meta Agent Optimizer</p>
+                  <p className="text-xs text-gray-400">Planner -&gt; Critic -&gt; Selector optimization loop on Gemini</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setUseMetaOptimizer(prev => !prev)}
+                  className={`relative h-6 w-11 rounded-full transition-colors ${useMetaOptimizer ? 'bg-cyan-500/70' : 'bg-gray-600'}`}
+                  aria-label="Toggle Meta Agent Optimizer"
+                >
+                  <span
+                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${useMetaOptimizer ? 'translate-x-5' : 'translate-x-0.5'}`}
+                  />
+                </button>
+              </label>
             </div>
           </div>
         </div>
@@ -269,6 +293,25 @@ export const CPO = () => {
                             <span className="text-xs font-mono text-purple-400">{(log.content as CPOActionResponse).expected_reward_impact.patient_burden}</span>
                           </div>
                         </div>
+
+                        {(log.content as CPOActionResponse).optimizer_trace && (
+                          <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-3">
+                            <p className="text-[11px] uppercase tracking-wider text-cyan-300 mb-1">Optimizer Trace</p>
+                            <p className="text-xs text-gray-300">
+                              {(log.content as CPOActionResponse).optimizer_trace?.environment}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              Reward: {(log.content as CPOActionResponse).optimizer_trace?.reward_function}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              Candidates: {(log.content as CPOActionResponse).optimizer_trace?.candidate_count} | Selected: #
+                              {(log.content as CPOActionResponse).optimizer_trace?.selected_candidate_index}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {(log.content as CPOActionResponse).optimizer_trace?.selection_reason}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}

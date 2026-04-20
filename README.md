@@ -1,13 +1,5 @@
 <h1 align="center">DeepCareX: AI-based Healthcare System</h1>
 
-<h3 align="center">Sumon Singh</h3>
-<h3 align="center">2023</h3>
-
----
-
-## Live Demo
-You can explore the live version of this project here:  
-[DeepCareX](https://deepcarex-latest.onrender.com/)
 
 ---
 

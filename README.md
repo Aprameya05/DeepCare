@@ -15,7 +15,6 @@
 - [How It Works (End-to-End)](#workflow)
 - [Sample Input to Result Flow](#sample-flow)
 - [Conclusion](#con)
-- [References](#ref)
 - [Project Presentation](#ppt)
 - [Installation](#install)
 - [Docker Deployment](#docker)
@@ -601,46 +600,6 @@ Give data privacy and security top priority because the project will be working 
 
 The project can develop into a complete and trustworthy health prediction and diagnosis system by putting these improvements into place. Users will be given the information they need to make wise decisions about their health, it will link them together with qualified healthcare professionals, and it will help with illness early detection and prevention.
 
-
-## **References** <a name="ref"></a>
-
-\[1\]. M. Swathy and K. Saruladha, "Comparative study of classification and prediction of Cardio-Vascular Diseases (CVD) using Machine Learning and Deep Learning techniques", ICT Express 8 (2022) 109--116, Science Direct, 2022.
-
-\[2\]. P. Rani, R Kumar, N. M. O. S. Ahmed, A. Jain, "A decision support system for heart disease prediction based upon machine learning", Journal of Reliable Intelligent Environments, Springer Nature Switzerland AG 2021.
-
-\[3\]. S. Afzal, M. Maqsood, U. Khan, I. Mehmood, H. Nawaz, F. Aadil, O. Young Song, Y. Nam, "Alzheimer Disease Detection Techniques and Methods: A Review", International Journal of Interactive Multimedia and Artificial Intelligence, Vol. 6, Nº7, 2022.
-
-\[4\]. P. G. Brindha, M Kavinraj, P. Manivasakam, P. Prasanth, "Brain tumor detection from MRI images using deep learning Techniques", 2021 IOP Conf. Ser.: Mater. Sci. Eng. 1055 012115.
-
-\[5\]. Dheiver Santos and Ewerton Santos, "Brain Tumor Detection Using Deep Learning", 1BRIDGE -- Instituto de Tecnologia e Pesquisa, Estado / UF: Sergipe / SE Município: Aracaju Bairro: Getúlio Vargas Logradouro: Rua São Cristóvão Número: 1361 Complemento: CEP: 49.055-620.
-
-\[6\]. M. Jyotiyana and N. Kesswani, "Classification and prediction of Alzheimer's disease using multi-layer perceptron", Int. J. Reasoning-based Intelligent Systems, Vol. 12, No. 4, 2020.
-
-\[7\]. D. Yang, C. Martinez, L. Visuña, H. Khandhar, C. Bhatt & J. Carretero, "Detection and analysis of COVID‑19 in medical images using deep learning techniques", Scientific Reports, Nature Portfolio, (2021) 11:19638.
-
-\[8\]. D. Park, M. Park, H. Lee, Y. Kim, Y. Kim & Y. Hoon Park, "Development of machine learning model for diagnostic disease prediction based on laboratory tests", Scientific Reports, Nature Portfolio, (2021) 11:7567.
-
-\[9\]. R. Keniya, A. Khakharia, V. Shah, V. Gada, R. Manjalkar, T. Thaker, M. Warang, N. Mehendale, "Disease prediction from various symptoms using machine learning", SSRN.
-
-\[10\]. Ms. K. Saxena, R. Sharma, R. Kumar, R. Kumar, "Disease Prediction Using Machine Learning and Deep Learning", International Journal for Research in Applied Science & Engineering Technology (IJRASET) ISSN: 2321-9653; IC Value: 45.98; SJ Impact Factor: 7.538 Volume 10 Issue V May 2022.
-
-\[11\]. S. K. Sarangi, Pallamravi, Pallamravi, N. R. Das, N. B. Madhavi, Naveen P, K. Kumar, "Disease Prediction Using Novel Deep Learning Mechanisms", Journal of Pharmaceutical Negative Results, Volume 13, Special Issue 9, 2022.
-
-\[12\]. D. Varshini, K. Thakral, L. Agarwal, R. Nihjhawan, A. Mittal, "Pneumonia Detection Using CNN based Feature Extraction", Computer Science, Medicine 2019 IEEE International Conference on Electrical, Computer and Communication Technologies (ICECCT), 2019.
-
-\[13\]. D. Kumar G, S. Kumar G, Arumugaraj K, Mareeswari V, "Prediction of Cardiovascular Disease Using Machine Learning Algorithms", IEEE International Conference on Current Trends toward Converging Technologies, 2018.
-
-\[14\]. D. K. Rathore and P. K. Mannepalli, "Diseases prediction and classification using machine learning techniques", AIP Conference Proceedings 2424, 070001 (2022).
-
-\[15\]. R. Bharti, A. Khamparia, M. Shabaz, G. Dhiman, S. Pande, and P. Singh, "Prediction of Heart Disease Using a Combination of Machine Learning and Deep Learning", Computational Intelligence and Neuroscience Volume 2021, Article ID 8387680.
-
-\[16\]. M. O. Eden et al., "Artificial Intelligence-Based Ensemble Learning Model for Prediction of Hepatitis C Disease", Frontiers in Public Health, April 2022, Volume 10, Article 892371.
-
-\[17\]. Z. Yu, et al., "Popular deep learning algorithms for disease prediction: a review", Cluster Computing (2023) 26:1231--1251, Springer.
-
-\[18\]. Dr C K Gomathy, Mr. A. R. Naidu, "The Prediction of disease using Machine Learning", International Journal of Scientific Research in Engineering and Management (IJSREM) ,Volume: 05 Issue:10,Oct -- 2021.
-
-\[19\]. Santangelo, O.E.; Gentile, V.; Pizzo, S.; Giordano, D.; Cedrone, F. "Machine Learning and Prediction of Infectious Diseases: A Systematic Review". Mach. Learn. Knowl. Extr. 2023, 5, 175--198.
 
 ## **Project Presentation** <a name="ppt"></a>
 

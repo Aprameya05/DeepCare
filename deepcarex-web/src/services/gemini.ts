@@ -298,10 +298,10 @@ Respond ONLY with valid JSON matching this exact schema:
 
 export const runMetaOptimizedCPOPathway = async (
   apiKey: string,
-  patientState: { demographics: string; symptoms: string; priorResults: string },
-  historyOfActions: string[]
+  state: CPOState,
+  cumulativeReward = 0
 ): Promise<CPOActionResponse> => {
-  let model: any = null;
+  let model: ReturnType<InstanceType<typeof GoogleGenerativeAI>['getGenerativeModel']> | null = null;
   try {
     if (!apiKey || apiKey.trim() === "") throw new Error("API key missing. Falling back.");
     const genAI = new GoogleGenerativeAI(apiKey);
@@ -310,17 +310,35 @@ export const runMetaOptimizedCPOPathway = async (
     // Fallback is handled in the catch below.
   }
 
-  const historyStr = historyOfActions.length > 0
-    ? `\nPrior Actions Taken in this session:\n${historyOfActions.join('\n')}`
-    : '';
+  const historyStr = state.actionHistory.length > 0
+    ? state.actionHistory.map((s, i) =>
+      `Step ${i + 1}: [${s.action.type}] ${s.action.detail}` +
+      (s.action.outcome ? ` → Outcome: ${s.action.outcome}` : '') +
+      ` (step reward: ${s.reward.toFixed(3)})`
+    ).join('\n')
+    : 'None';
+
+  const labStr = Object.entries(state.labResults).length > 0
+    ? Object.entries(state.labResults).map(([k, v]) => `  ${k}: ${v}`).join('\n')
+    : '  None';
 
   const plannerPrompt = `You are the Planner agent in a Meta-style Agent Optimizer Environment for clinical pathways.
 Generate exactly 3 candidate next actions for this patient.
 
-Patient State:
-Demographics: ${patientState.demographics}
-Symptoms: ${patientState.symptoms}
-Prior Results / History: ${patientState.priorResults}
+CURRENT EPISODE STATE:
+  Episode ID   : ${state.episodeId}
+  Time elapsed : ${state.timeElapsed} min
+  Cost accrued : $${state.costAccrued}
+  Cumulative R : ${cumulativeReward.toFixed(3)}
+
+PATIENT:
+  Demographics : ${state.demographics.age}${state.demographics.sex}, ${state.demographics.weight}kg
+  Vitals       : BP ${state.vitals.bp} | HR ${state.vitals.hr} | Temp ${state.vitals.temp}°C | SpO2 ${state.vitals.spo2}%
+  Symptoms     : ${state.symptoms.join(', ')}
+  Lab Results  :
+${labStr}
+
+PRIOR ACTIONS:
 ${historyStr}
 
 Constraints:
@@ -346,6 +364,7 @@ Respond ONLY with JSON:
 }`;
 
   try {
+    if (!model) throw new Error("No model available");
     const plannerResult = await model.generateContent(plannerPrompt);
     const plannerText = plannerResult.response.text();
     const plannerJson = JSON.parse(cleanJsonResponse(plannerText)) as { candidates: CPOCandidateAction[] };
@@ -359,10 +378,20 @@ Respond ONLY with JSON:
 Score each candidate using this weighted reward function:
 Reward = 0.45*AccuracyGain - 0.20*Cost - 0.20*Time - 0.15*PatientBurden
 
-Patient State:
-Demographics: ${patientState.demographics}
-Symptoms: ${patientState.symptoms}
-Prior Results / History: ${patientState.priorResults}
+CURRENT EPISODE STATE:
+  Episode ID   : ${state.episodeId}
+  Time elapsed : ${state.timeElapsed} min
+  Cost accrued : $${state.costAccrued}
+  Cumulative R : ${cumulativeReward.toFixed(3)}
+
+PATIENT:
+  Demographics : ${state.demographics.age}${state.demographics.sex}, ${state.demographics.weight}kg
+  Vitals       : BP ${state.vitals.bp} | HR ${state.vitals.hr} | Temp ${state.vitals.temp}°C | SpO2 ${state.vitals.spo2}%
+  Symptoms     : ${state.symptoms.join(', ')}
+  Lab Results  :
+${labStr}
+
+PRIOR ACTIONS:
 ${historyStr}
 
 Candidate actions:
@@ -399,7 +428,7 @@ Output ONLY valid JSON:
     };
   } catch (error: any) {
     console.warn("Meta optimizer CPO failed, falling back to baseline CPO/simulation.", error?.message);
-    const fallback = await runCPOPathway(apiKey, patientState, historyOfActions);
+    const fallback = await runCPOPathway(apiKey, state, cumulativeReward);
     return {
       ...fallback,
       optimizer_trace: {

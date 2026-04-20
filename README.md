@@ -20,7 +20,9 @@ You can explore the live version of this project here:
 - [Algorithms Used For This Application](#Algo)
 - [Experimentation Setup and Results](#Exp)
 - [Use Cases](#cases)
-- [User Interfaace (UI)](#ui)
+- [System Requirements](#requirements)
+- [How It Works (End-to-End)](#workflow)
+- [Sample Input to Result Flow](#sample-flow)
 - [Conclusion](#con)
 - [References](#ref)
 - [Project Presentation](#ppt)
@@ -484,67 +486,153 @@ Machine and deep learning-based diagnostics' time-saving feature is especially h
 
 Additionally, the capacity to store symptom information and associated diagnoses from various individuals might be extremely beneficial for research. By combining this data, it is possible to analyse patterns and trends on a broader scale and find correlations, risk factors, and fresh perspectives on various diseases. These datasets can be used by researchers to increase understanding, create more precise models, and boost medical research and healthcare procedures.
 
-## **User Interface (UI)** <a name="ui"></a>
+## **System Requirements** <a name="requirements"></a>
 
-### Home page:
+### 1) Core runtime for the original Flask application
 
-![](./media/image38.png)
+- **Python:** 3.10 to 3.12 recommended  
+  (TensorFlow support is version-sensitive; Python 3.13 is not recommended for this stack)
+- **Pip packages (minimum):**
+  - `flask`
+  - `tensorflow`
+  - `numpy`
+  - `pandas`
+  - `scikit-learn`
+  - `xgboost`
+  - `matplotlib`
+  - `seaborn`
+  - `joblib`
+  - `pickle` (standard library, no pip install required)
+  - `sqlite3` (standard library, no pip install required)
+- **OS:** Windows/Linux/macOS
+- **Storage:** Sufficient free space for datasets and model files (`.pkl`, `.h5`, `.hdf5`)
 
-![](./media/image39.png)
+### 2) Optional modern frontend (`deepcarex-web`)
 
-![](./media/image40.png)
+- **Node.js:** v18+ (v20+ preferred)
+- **npm:** v9+
+- Install dependencies with `npm install`
+- Run with `npm run dev` (Vite)
 
-### About Us
+### 3) Data and model artifacts required
 
-![](./media/image41.png)
+- Pre-trained model files under `Models/`
+- Uploaded image input directory under `DeepCareX-Website/database/Uploaded`
+- SQLite database file generated in `DeepCareX-Website/database/DeepCareX.db`
 
-### Contact
+## **How It Works (End-to-End)** <a name="workflow"></a>
 
-![](./media/image42.png)
+DeepCareX combines classical ML and deep learning models to handle both **tabular symptom data** and **medical image data**.
 
-### Login
+### Step 1: User provides input
 
-![](./media/image43.png)
+- **Tabular diseases** (for example, diabetes, hepatitis, breast cancer): user submits form values such as age, history, blood metrics, and risk indicators.
+- **Image-based diseases** (for example, brain tumor, Alzheimer's, kidney, pneumonia, COVID-19): user uploads an image (MRI/CT/X-ray), plus basic demographic metadata in the form.
 
-### After Registration/Login
+### Step 2: Request handling in Flask
 
-#### Alzheimer's
+- Routing and form processing are handled in `DeepCareX-Website/main.py`.
+- For image tasks:
+  - The file is saved securely in `database/Uploaded`.
+  - The image is resized and preprocessed.
+  - The selected deep model (`.h5`/`.hdf5`) is loaded and used for inference.
+- For tabular tasks:
+  - Input is transformed according to model expectations.
+  - Pre-trained ML estimators (`.pkl`) generate class prediction.
 
-![](./media/image44.png)
+### Step 3: Model inference and confidence
 
-#### Breast Cancer
+- The model returns a target class and confidence/probability score.
+- The application maps numeric classes to human-readable diagnosis labels.
+- Output format is disease-specific (for example, `Kidney Stone (xx.xx%)`, `Normal (xx.xx%)`, etc.).
 
-![](./media/image45.png)
+### Step 4: Optional persistence
 
-#### Brain Tumor
+- If the "save" option is enabled in the form, patient metadata and prediction are inserted into SQLite tables:
+  - `USER`
+  - `CONTACT`
+  - `NEWSLETTER`
+  - `PATIENTS`
 
-![](./media/image46.png)
+### Step 5: Result generation
 
-#### Covid-19
+- The backend renders a result template with:
+  - patient identifiers (name/id/age/gender)
+  - disease type
+  - predicted outcome with confidence
+- This creates a complete input -> inference -> report flow.
 
-![](./media/image47.png)
+## **Sample Input to Result Flow** <a name="sample-flow"></a>
 
-#### Diabetes
+This section clarifies how image input (like the brain MRI and kidney CT examples) is processed from upload to output.
 
-![](./media/image48.png)
+### A) Brain MRI-type sample
 
-#### Hepatitis C
+1. User uploads a brain MRI slice image through the disease form.
+2. Backend saves the file and normalizes image dimensions for the corresponding CNN/VGG-based model.
+3. Model predicts one of the target classes (for the selected disease module).
+4. App returns class label and confidence score in the report page.
 
-![](./media/image49.png)
+### B) Kidney CT-type sample
 
-#### Pneumonia
+1. User uploads a kidney CT image.
+2. The kidney CNN model classifies into one of the supported classes:
+   - Kidney Cyst
+   - Normal
+   - Kidney Stone
+   - Kidney Tumor
+3. Result is shown as a formatted diagnosis string with confidence percentage.
 
-![](./media/image50.png)
+### Notes on interpretation
 
-#### Kidney Disease
+- Predictions are **decision-support outputs**, not a clinical final diagnosis.
+- Confidence score reflects model certainty on trained distributions, not guaranteed real-world correctness.
+- Better image quality and correct modality (MRI/CT/X-ray as expected by each model) improves reliability.
 
-![](./media/image51.png)
+## **Updated Installation and Execution (Local)** <a name="install"></a>
 
-### Result for Kidney Disease
+Build and run on a local system:
 
-![](./media/image52.png)
+1. Clone the repository:
+```sh
+git clone --recurse-submodules -j8 https://github.com/sumony2j/DeepCareX.git
+cd DeepCareX
+```
 
-![](./media/image53.png)
+2. Create and activate a virtual environment (recommended):
+```sh
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# Linux/macOS
+source .venv/bin/activate
+```
+
+3. Install dependencies:
+```sh
+pip install flask tensorflow numpy pandas scikit-learn matplotlib scipy seaborn xgboost joblib
+```
+
+4. Initialize database:
+```sh
+cd DeepCareX-Website/database
+python database.py
+```
+
+5. Run backend website:
+```sh
+cd ..
+python main.py
+```
+Open: `http://localhost:5000`
+
+6. (Optional) Run React frontend:
+```sh
+cd ../deepcarex-web
+npm install
+npm run dev
+```
+Open: `http://localhost:5173`
 
 
 ## **Conclusion** <a name="con"></a>
@@ -635,29 +723,6 @@ The project can develop into a complete and trustworthy health prediction and di
 You can view the project presentation here:
 
 [Project Presentation PDF](./DeepCareX.pdf)
-
-## **Installation** <a name="install"></a>
-
-Build the project from source: (On a local System)
-
-1. Clone the DeepCareX.git repository:
-```sh
-❯ git clone --recurse-submodules -j8 https://github.com/sumony2j/DeepCareX.git
-```
-
-2. Navigate to the project directory:
-```sh
-❯ cd DeepCareX.git
-```
-
-3. Install the required dependencies: (**Follow for more details : requirment.txt**)
-```sh
-❯ pip3 install numpy pandas scikit-learn matplotlib os scipy seaborn xgboost joblib pickle sqlite3 tensorflow flask
-```
-4. Run the Application:
-```
-Follow the Instruction.txt file
-```
 
 ## **Docker Deployment** <a name=docker></a>
 

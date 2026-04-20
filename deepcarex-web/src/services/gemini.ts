@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import type { CPOState } from '../env/CPOEnv';
 
 export type DiagnosisResult = {
   diagnosis: string;
@@ -156,43 +157,76 @@ Respond ONLY with a valid JSON format matching this exact schema:
   }
 };
 
+function validateCPOActionResponse(obj: unknown): obj is CPOActionResponse {
+  const o = obj as CPOActionResponse;
+  const validActions = ['Order Test', 'Prescribe', 'Refer', 'Escalate', 'Wait'];
+  return (
+    typeof o === 'object' &&
+    o !== null &&
+    validActions.includes(o.action) &&
+    typeof o.specific_detail === 'string' &&
+    typeof o.reasoning === 'string' &&
+    typeof o.expected_reward_impact === 'object' &&
+    o.expected_reward_impact !== null
+  );
+}
+
 export const runCPOPathway = async (
   apiKey: string,
-  patientState: { demographics: string; symptoms: string; priorResults: string },
-  historyOfActions: string[]
+  state: CPOState,
+  cumulativeReward = 0
 ): Promise<CPOActionResponse> => {
-  let model: any = null;
+  let model: ReturnType<InstanceType<typeof GoogleGenerativeAI>['getGenerativeModel']> | null = null;
   try {
     if (!apiKey || apiKey.trim() === "") throw new Error("API key missing. Falling back.");
     const genAI = new GoogleGenerativeAI(apiKey);
     model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
-  } catch (initError) {
-    // We will let the later try-catch block handle the actual missing model
+  } catch (_initError) {
+    // handled in try-catch below
   }
 
-  const historyStr = historyOfActions.length > 0 
-    ? `\nPrior Actions Taken in this session:\n${historyOfActions.join('\n')}` 
-    : '';
+  const historyStr = state.actionHistory.length > 0
+    ? state.actionHistory.map((s, i) =>
+        `Step ${i + 1}: [${s.action.type}] ${s.action.detail}` +
+        (s.action.outcome ? ` → Outcome: ${s.action.outcome}` : '') +
+        ` (step reward: ${s.reward.toFixed(3)})`
+      ).join('\n')
+    : 'None';
 
-  const prompt = `You are an AI Clinical Pathway Optimizer (CPO).
-Your goal is to decide the next best action for a patient to maximize diagnostic accuracy, minimize time, minimize cost, and minimize patient burden.
+  const labStr = Object.entries(state.labResults).length > 0
+    ? Object.entries(state.labResults).map(([k, v]) => `  ${k}: ${v}`).join('\n')
+    : '  None';
 
-Current Patient State:
-Demographics: ${patientState.demographics}
-Symptoms: ${patientState.symptoms}
-Prior Results / History: ${patientState.priorResults}
+  const prompt = `You are an AI Clinical Pathway Optimizer (CPO) guided by a reinforcement-learning reward function.
+
+REWARD WEIGHTS (per step):
+  R = +diagnostic_accuracy_delta - 0.3×norm_time - 0.3×norm_cost - 0.4×patient_burden
+  • OrderTest  cost $150  time 60 min  burden 0.3
+  • Prescribe  cost $50   time 15 min  burden 0.1
+  • Refer      cost $200  time 120 min burden 0.2
+  • Escalate   cost $1000 time 30 min  burden 0.8  (ENDS EPISODE)
+  • Wait       cost $0    time 120 min burden 0.05
+
+CURRENT EPISODE STATE:
+  Episode ID   : ${state.episodeId}
+  Time elapsed : ${state.timeElapsed} min
+  Cost accrued : $${state.costAccrued}
+  Cumulative R : ${cumulativeReward.toFixed(3)}
+
+PATIENT:
+  Demographics : ${state.demographics.age}${state.demographics.sex}, ${state.demographics.weight}kg
+  Vitals       : BP ${state.vitals.bp} | HR ${state.vitals.hr} | Temp ${state.vitals.temp}°C | SpO2 ${state.vitals.spo2}%
+  Symptoms     : ${state.symptoms.join(', ')}
+  Lab Results  :
+${labStr}
+
+PRIOR ACTIONS:
 ${historyStr}
 
-Select the NEXT SINGLE BEST ACTION from these categories:
-1. "Order Test" (e.g., Blood test, X-ray, MRI)
-2. "Prescribe" (e.g., start medication, oxygen)
-3. "Refer" (e.g., to Cardiology, Neurology)
-4. "Escalate" (e.g., admit to ICU, call code)
-5. "Wait" (e.g., observe for 2 hours)
+Select the NEXT SINGLE BEST ACTION. Choose "Escalate" if patient is critically unstable.
+Action options: "Order Test" | "Prescribe" | "Refer" | "Escalate" | "Wait"
 
-Provide a specific detail for the action (e.g., if "Order Test", what test?), and reasoning explicitly considering the Reward constraints (+diagnostic_accuracy, -time, -cost, -patient_burden). Also provide the estimated impact on these reward factors (e.g., "High", "Low", "Moderate").
-
-Respond ONLY with a valid JSON format matching this exact schema:
+Respond ONLY with valid JSON matching this exact schema:
 {
   "action": "Order Test" | "Prescribe" | "Refer" | "Escalate" | "Wait",
   "specific_detail": "string",
@@ -206,24 +240,27 @@ Respond ONLY with a valid JSON format matching this exact schema:
 }`;
 
   try {
+    if (!model) throw new Error("No model available");
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
     const jsonStr = cleanJsonResponse(responseText);
-    return JSON.parse(jsonStr) as CPOActionResponse;
-  } catch (error: any) {
-    console.warn("Gemini API request failed for CPO.", error.message);
+    const parsed: unknown = JSON.parse(jsonStr);
+    if (!validateCPOActionResponse(parsed)) throw new Error("Invalid CPOActionResponse shape");
+    return parsed;
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.warn("Gemini CPO request failed. Falling back.", msg);
     await new Promise(r => setTimeout(r, 1500));
-    // Provide a safe fallback simulation
     return {
       action: "Order Test",
       specific_detail: "Comprehensive Metabolic Panel (CMP) & CBC",
-      reasoning: "API Simulation Fallback. Baseline labs provide immediate diagnostic accuracy at low cost/time.",
+      reasoning: `Simulation fallback (${msg.slice(0, 60)}). Baseline labs offer high accuracy delta at low cost/time.`,
       expected_reward_impact: {
         accuracy: "+High",
         cost: "-Low",
         time: "-Low",
-        patient_burden: "-Low"
-      }
+        patient_burden: "-Low",
+      },
     };
   }
 };

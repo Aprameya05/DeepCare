@@ -1,7 +1,7 @@
-import { useState, useCallback, FormEvent, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UploadCloud, CheckCircle, Activity, Key, Loader2, ArrowLeft } from 'lucide-react';
+import { UploadCloud, Activity, Key, Loader2, ArrowLeft } from 'lucide-react';
 import { runImageDiagnosis, runParameterDiagnosis } from '../services/gemini';
 import type { DiagnosisResult } from '../services/gemini';
 
@@ -119,19 +119,6 @@ export const DiagnosisForm = () => {
     localStorage.setItem('gemini_api_key', key);
     setApiKey(key);
     setShowApiKeyPrompt(false);
-  };
-
-  const fileToGenerativePart = (file: File): Promise<{ inlineData: { data: string; mimeType: string } }> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64Data = (reader.result as string).split(',')[1];
-        resolve({
-          inlineData: { data: base64Data, mimeType: file.type }
-        });
-      };
-      reader.readAsDataURL(file);
-    });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, Brain, Activity, Dna, Microscope, HeartPulse } from 'lucide-react';
+import { ArrowRight, Brain, Activity, Microscope, HeartPulse } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const Home = () => {

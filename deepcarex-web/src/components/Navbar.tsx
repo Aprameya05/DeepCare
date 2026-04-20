@@ -1,4 +1,4 @@
-import { Activity, Beaker, Hexagon, User, Brain } from 'lucide-react';
+import { Activity, Hexagon, Brain } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const Navbar = () => {
@@ -35,10 +35,6 @@ export const Navbar = () => {
                     <polyline points="0,10 20,10 30,0 40,20 50,10 100,10" className="opacity-70 animate-[scan_2s_linear_infinite]" />
                  </svg>
              </div>
-            <button className="flex items-center gap-2 glass-panel-hover bg-white/5 px-4 py-2 rounded-lg text-sm font-medium transition-all neon-border">
-              <User className="w-4 h-4 text-cyan-400" />
-              <span>Login</span>
-            </button>
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { Activity, Beaker, Hexagon, User, Brain } from 'lucide-react';
+import { Activity, Hexagon, Brain } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const Navbar = () => {
@@ -13,7 +13,7 @@ export const Navbar = () => {
                 <Activity className="w-4 h-4 text-white absolute animate-heartbeat" />
               </div>
               <span className="font-mono text-2xl font-bold tracking-wider text-white group-hover:neon-text transition-all duration-300">
-                DeepCare<span className="text-cyan-400">X</span>
+                Nexiora<span className="text-cyan-400">Dx</span>
               </span>
             </Link>
           </div>
@@ -24,7 +24,6 @@ export const Navbar = () => {
               <Link to="/dashboard" className="text-gray-300 hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(0,212,255,0.8)] px-3 py-2 rounded-md text-sm font-medium transition-all">Diagnose</Link>
               <Link to="/cpo" className="text-gray-300 hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(0,212,255,0.8)] px-3 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-1"><Brain className="w-4 h-4 inline" /> Optimizer</Link>
               <Link to="/about" className="text-gray-300 hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(0,212,255,0.8)] px-3 py-2 rounded-md text-sm font-medium transition-all">How it Works</Link>
-              <Link to="/contact" className="text-gray-300 hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(0,212,255,0.8)] px-3 py-2 rounded-md text-sm font-medium transition-all">Contact Ops</Link>
             </div>
           </div>
           
@@ -35,10 +34,6 @@ export const Navbar = () => {
                     <polyline points="0,10 20,10 30,0 40,20 50,10 100,10" className="opacity-70 animate-[scan_2s_linear_infinite]" />
                  </svg>
              </div>
-            <button className="flex items-center gap-2 glass-panel-hover bg-white/5 px-4 py-2 rounded-lg text-sm font-medium transition-all neon-border">
-              <User className="w-4 h-4 text-cyan-400" />
-              <span>Login</span>
-            </button>
           </div>
         </div>
       </div>

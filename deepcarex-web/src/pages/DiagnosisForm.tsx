@@ -340,7 +340,7 @@ export const DiagnosisForm = () => {
                     <Key className="w-8 h-8 text-cyan-400" />
                 </div>
                 <h3 className="text-2xl font-bold text-center mb-2">Gemini API Connection</h3>
-                <p className="text-gray-400 text-center text-sm mb-6">DeepCareX requires a Gemini API key to run the deep learning inference engine.</p>
+                <p className="text-gray-400 text-center text-sm mb-6">NexioraDx requires a Gemini API key to run the deep learning inference engine.</p>
                 
                 <form onSubmit={(e) => {
                     e.preventDefault();

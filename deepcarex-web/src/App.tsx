@@ -6,8 +6,6 @@ import { Dashboard } from './pages/Dashboard';
 import { DiagnosisForm } from './pages/DiagnosisForm';
 import { Result } from './pages/Result';
 import { About } from './pages/About';
-import { Contact } from './pages/Contact';
-import { AuthModal } from './components/AuthModal';
 import { CPO } from './pages/CPO';
 
 function App() {
@@ -24,12 +22,9 @@ function App() {
             <Route path="/diagnosis/:diseaseId" element={<DiagnosisForm />} />
             <Route path="/result" element={<Result />} />
             <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
             <Route path="/cpo" element={<CPO />} />
           </Routes>
         </main>
-        
-        <AuthModal />
       </div>
     </Router>
   );

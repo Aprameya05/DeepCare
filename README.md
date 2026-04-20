@@ -1,4 +1,4 @@
-<h1 align="center">DeepCareX: AI-based Healthcare System</h1>
+<h1 align="center">NexioraDx: AI-based Healthcare System</h1>
 
 
 ---
@@ -277,7 +277,7 @@ Also, a sqlite3 database is added to store the information of the user.
 
 ### **D. Directory Tree**
 
-**DeepCareX - (ROOT)**
+**NexioraDx - (ROOT)**
 
 1. **Datasets** -- Consists of 8 datasets of diseases.
 2. **Model_Code** -- Python codes for model generation of 8 diseases.
@@ -302,14 +302,14 @@ Also, a sqlite3 database is added to store the information of the user.
 #### Run The Application:
 
 1. **Create the databases:**
-   - Navigate to: `DeepCareX/Website/database`
+   - Navigate to: `NexioraDx/deepcarex-web`
    - Run: `database.py`
    - Syntax: `python3 database.py`
 
 2. **Run The Application:**
-   - Navigate to: `DeepCareX/Website`
-   - Run: `main.py`
-   - Syntax: `python3 main.py`
+   - Navigate to: `NexioraDx/deepcarex-web`
+   - Run: `npm run dev`
+   - Dev URL: `http://localhost:5173`
 
 
 ### The algorithms gave us good results. We will now go through the evaluation metrics obtained for each disease.
@@ -438,12 +438,12 @@ Additionally, the capacity to store symptom information and associated diagnoses
 ### 3) Data and model artifacts required
 
 - Pre-trained model files under `Models/`
-- Uploaded image input directory under `DeepCareX-Website/database/Uploaded`
-- SQLite database file generated in `DeepCareX-Website/database/DeepCareX.db`
+- Uploaded image input directory under your browser upload flow in `deepcarex-web`
+- Runtime browser storage used for API key/session-like data via `localStorage`
 
 ## **How It Works (End-to-End)** <a name="workflow"></a>
 
-DeepCareX combines classical ML and deep learning models to handle both **tabular symptom data** and **medical image data**.
+NexioraDx combines classical ML and deep learning models to handle both **tabular symptom data** and **medical image data**.
 
 ### Step 1: User provides input
 
@@ -452,7 +452,7 @@ DeepCareX combines classical ML and deep learning models to handle both **tabula
 
 ### Step 2: Request handling in Flask
 
-- Routing and form processing are handled in `DeepCareX-Website/main.py`.
+- Routing and form processing are handled in the React app under `deepcarex-web/src`.
 - For image tasks:
   - The file is saved securely in `database/Uploaded`.
   - The image is resized and preprocessed.
@@ -516,8 +516,8 @@ Build and run on a local system:
 
 1. Clone the repository:
 ```sh
-git clone --recurse-submodules -j8 https://github.com/sumony2j/DeepCareX.git
-cd DeepCareX
+git clone --recurse-submodules -j8 https://github.com/Aprameya05/DeepCare.git
+cd DeepCareX-main
 ```
 
 2. Create and activate a virtual environment (recommended):
@@ -534,26 +534,25 @@ source .venv/bin/activate
 pip install flask tensorflow numpy pandas scikit-learn matplotlib scipy seaborn xgboost joblib
 ```
 
-4. Initialize database:
+4. Run frontend website:
 ```sh
-cd DeepCareX-Website/database
-python database.py
-```
-
-5. Run backend website:
-```sh
-cd ..
-python main.py
-```
-Open: `http://localhost:5000`
-
-6. (Optional) Run React frontend:
-```sh
-cd ../deepcarex-web
+cd deepcarex-web
 npm install
 npm run dev
 ```
 Open: `http://localhost:5173`
+
+## **One-Click Netlify Deployment**
+
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Aprameya05/DeepCare)
+
+This repo includes a root `netlify.toml` configured for the `deepcarex-web` app.
+
+After deploying, add this environment variable in Netlify site settings:
+
+- `VITE_GEMINI_API_KEY=your_api_key`
+
+Then trigger a redeploy.
 
 
 ## **Conclusion** <a name="con"></a>
@@ -616,12 +615,12 @@ Ensure you have Docker installed. You can download and install Docker from [here
 1. Clone the repository:
 
    ```bash
-   git clone --recurse-submodules -j8 https://github.com/sumony2j/DeepCareX.git
+   git clone --recurse-submodules -j8 https://github.com/Aprameya05/DeepCare.git
    ```
 2. Navigate to the project directory:
 
    ```bash
-   cd DeepCareX
+   cd DeepCareX-main
    ```
 3. Build the Docker image:
 

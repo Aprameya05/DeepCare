@@ -28,7 +28,7 @@ export const Home = () => {
         className="text-center z-10 relative mt-10"
       >
         <div className="inline-block mb-4 px-4 py-1.5 rounded-full glass-panel neon-border mb-8">
-          <span className="text-cyan-400 text-sm font-semibold tracking-wider uppercase">DeepCareX v3.1 Inference Engine Active</span>
+          <span className="text-cyan-400 text-sm font-semibold tracking-wider uppercase">NexioraDx v3.1 Inference Engine Active</span>
         </div>
         
         <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight">

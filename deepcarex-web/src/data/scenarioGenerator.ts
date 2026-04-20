@@ -1,25 +1,5 @@
 // MIMIC-IV summary-stat priors; no external DB required.
-
-export type CPOActionType = 'OrderTest' | 'Prescribe' | 'Refer' | 'Escalate' | 'Wait';
-
-export interface PatientScenarioInitialState {
-  demographics: { age: number; sex: string; weight: number };
-  vitals: { bp: string; hr: number; temp: number; spo2: number };
-  symptoms: string[];
-  labResults: Record<string, number | string>;
-}
-
-export interface PatientScenario {
-  id: string;
-  name: string;
-  level: 'simple' | 'moderate' | 'complex';
-  initialState: PatientScenarioInitialState;
-  groundTruthDiagnosis: string;
-  optimalActionSequence: CPOActionType[];
-  maxSteps: number;
-  budgetCeiling: number;
-  displayPriorResults: string;
-}
+import type { CurriculumLevel, PatientScenario } from '../env/CPOEnv';
 
 const SCENARIOS: PatientScenario[] = [
   // ── Level 1: Simple — single-system ─────────────────────────────────────
@@ -139,12 +119,12 @@ const SCENARIOS: PatientScenario[] = [
   },
 ];
 
-export function generateScenario(level: 'simple' | 'moderate' | 'complex'): PatientScenario {
+export function generateScenario(level: CurriculumLevel): PatientScenario {
   const pool = SCENARIOS.filter(s => s.level === level);
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
-export function getCurriculumScenarios(level: 'simple' | 'moderate' | 'complex'): PatientScenario[] {
+export function getCurriculumScenarios(level: CurriculumLevel): PatientScenario[] {
   return SCENARIOS.filter(s => s.level === level);
 }
 

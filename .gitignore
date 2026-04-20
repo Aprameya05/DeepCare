@@ -1,6 +1,8 @@
 # Environments
 venv/
 env/
+!deepcarex-web/src/env/
+!deepcarex-web/src/env/*.ts
 .env
 __pycache__/
 *.pyc

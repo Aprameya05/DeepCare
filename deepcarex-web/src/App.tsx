@@ -6,7 +6,8 @@ import { Dashboard } from './pages/Dashboard';
 import { DiagnosisForm } from './pages/DiagnosisForm';
 import { Result } from './pages/Result';
 import { About } from './pages/About';
-import { CPO } from './pages/CPO';
+import { CPO, CPOLayout } from './pages/CPO';
+import { CPOAutoDemo } from './components/CPOAutoDemo';
 
 function App() {
   return (
@@ -23,6 +24,17 @@ function App() {
             <Route path="/result" element={<Result />} />
             <Route path="/about" element={<About />} />
             <Route path="/cpo" element={<CPO />} />
+            <Route
+              path="/cpo-demo"
+              element={
+                <CPOLayout
+                  title="CPO Auto Demo"
+                  subtitle="Automated scenario playback with state transitions, recommendation thinking phase, and live reward tracking."
+                >
+                  <CPOAutoDemo />
+                </CPOLayout>
+              }
+            />
           </Routes>
         </main>
       </div>

@@ -1,473 +1,409 @@
-import { useState, useEffect, useRef } from 'react';
-import { runCPOPathway, runMetaOptimizedCPOPathway } from '../services/gemini';
-import type { CPOActionResponse } from '../services/gemini';
-import { CPOEnv } from '../env/CPOEnv';
-import type { CPOState, CPOActionType } from '../env/CPOEnv';
-import { getAllScenarios } from '../data/scenarioGenerator';
-import type { PatientScenario } from '../data/scenarioGenerator';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
-  Activity, ArrowRight, Brain, AlertTriangle, Stethoscope,
-  Pill, FileText, ArrowUpCircle, Clock, ShieldCheck, ChevronRight,
-  TrendingUp, Cpu,
+  Activity,
+  AlertTriangle,
+  ArrowRight,
+  Brain,
+  CheckCircle2,
+  Clock3,
+  FileText,
+  Pill,
+  Stethoscope,
+  TrendingUp,
 } from 'lucide-react';
+import { generateScenario, getCurriculumScenarios } from '../data/scenarioGenerator';
+import {
+  buildRecommendation,
+  CPOEnv,
+  totalReward,
+  type CPOActionType,
+  type CPORecommendation,
+  type CPORewardBreakdown,
+  type CPOState,
+  type CurriculumLevel,
+  type PatientScenario,
+} from '../env/CPOEnv';
+import { RewardChart } from '../components/RewardChart';
 
-interface LogEntry {
-  type: 'user' | 'agent';
-  content: string | CPOActionResponse;
-  stepReward?: number;
+interface CPOLayoutProps {
+  title: string;
+  subtitle: string;
+  children: ReactNode;
 }
 
-const ACTION_TYPE_MAP: Record<string, CPOActionType> = {
-  'Order Test': 'OrderTest',
-  'Prescribe': 'Prescribe',
-  'Refer': 'Refer',
-  'Escalate': 'Escalate',
-  'Wait': 'Wait',
+const ZERO_REWARD: CPORewardBreakdown = {
+  accuracy_gain: 0,
+  time_cost: 0,
+  financial_cost: 0,
+  burden: 0,
 };
 
-function stateToDisplayFields(state: CPOState) {
-  return {
-    demographics: `${state.demographics.age}${state.demographics.sex}, ${state.demographics.weight}kg`,
-    symptoms: state.symptoms.join(', '),
-  };
-}
+const RECOMMENDATION_DETAIL: Record<CPOActionType, string> = {
+  OrderTest: 'High-yield diagnostic test bundle',
+  Prescribe: 'Targeted therapy based on current evidence',
+  Refer: 'Specialist consult for advanced workup',
+  Escalate: 'Critical care escalation for instability',
+  Wait: 'Observe and reassess with serial monitoring',
+};
 
-function buildCustomScenario(
-  demographics: string,
-  symptoms: string,
-  priorResults: string
-): PatientScenario {
-  const ageMatch = demographics.match(/\d+/);
-  const sexMatch = demographics.match(/\b([MFmf])\b/);
-  return {
-    id: 'custom',
-    name: 'Custom Case',
-    level: 'moderate',
-    initialState: {
-      demographics: {
-        age: ageMatch ? parseInt(ageMatch[0]) : 40,
-        sex: sexMatch ? sexMatch[1].toUpperCase() : 'U',
-        weight: 70,
-      },
-      vitals: { bp: 'Unknown', hr: 0, temp: 0, spo2: 0 },
-      symptoms: symptoms.split(/[,;]/).map(s => s.trim()).filter(Boolean),
-      labResults: priorResults && priorResults !== 'None'
-        ? { notes: priorResults }
-        : {},
-    },
-    groundTruthDiagnosis: 'Unknown',
-    optimalActionSequence: ['OrderTest', 'Prescribe', 'Refer', 'Wait', 'Wait'],
-    maxSteps: 10,
-    budgetCeiling: 3000,
-    displayPriorResults: priorResults || 'None',
-  };
-}
+const ACTION_ICON: Record<CPOActionType, ReactNode> = {
+  OrderTest: <FileText className="w-5 h-5 text-cyan-300" />,
+  Prescribe: <Pill className="w-5 h-5 text-green-300" />,
+  Refer: <ArrowRight className="w-5 h-5 text-blue-300" />,
+  Escalate: <AlertTriangle className="w-5 h-5 text-red-300" />,
+  Wait: <Clock3 className="w-5 h-5 text-yellow-300" />,
+};
 
-export const CPO = () => {
-  const [apiKey] = useState(() => localStorage.getItem('gemini_api_key') || '');
-  const [demographics, setDemographics] = useState('');
-  const [symptoms, setSymptoms] = useState('');
-  const [priorResults, setPriorResults] = useState('');
+const levelBadgeClass: Record<CurriculumLevel, string> = {
+  simple: 'border-green-500/40 bg-green-500/10 text-green-300',
+  moderate: 'border-yellow-500/40 bg-yellow-500/10 text-yellow-300',
+  complex: 'border-red-500/40 bg-red-500/10 text-red-300',
+};
 
-  const [interactionLog, setInteractionLog] = useState<LogEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [outcomeInput, setOutcomeInput] = useState('');
-  const [cumulativeReward, setCumulativeReward] = useState(0);
-  const [episodeDone, setEpisodeDone] = useState(false);
-  const [useMetaOptimizer, setUseMetaOptimizer] = useState(true);
+const labBadgeClass = (value: number | string): string => {
+  if (typeof value !== 'number') return 'bg-cyan-500/10 border-cyan-500/30 text-cyan-200';
+  if (value >= 200) return 'bg-red-500/10 border-red-500/30 text-red-300';
+  if (value >= 80) return 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300';
+  return 'bg-green-500/10 border-green-500/30 text-green-300';
+};
 
-  const envRef = useRef(new CPOEnv());
-  const cpoStateRef = useRef<CPOState | null>(null);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+const vitalTone = (label: string, value: string | number): string => {
+  if (label === 'SpO2' && typeof value === 'number') {
+    if (value < 90) return 'bg-red-500/10 border-red-500/30 text-red-300';
+    if (value < 95) return 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300';
+    return 'bg-green-500/10 border-green-500/30 text-green-300';
+  }
+  if (label === 'HR' && typeof value === 'number') {
+    if (value > 120 || value < 50) return 'bg-red-500/10 border-red-500/30 text-red-300';
+    if (value > 100) return 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300';
+    return 'bg-green-500/10 border-green-500/30 text-green-300';
+  }
+  if (label === 'Temp' && typeof value === 'number') {
+    if (value > 39 || value < 35) return 'bg-red-500/10 border-red-500/30 text-red-300';
+    if (value > 37.5) return 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300';
+    return 'bg-green-500/10 border-green-500/30 text-green-300';
+  }
+  return 'bg-cyan-500/10 border-cyan-500/30 text-cyan-200';
+};
 
-  const allScenarios = getAllScenarios();
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [interactionLog]);
-
-  const loadScenario = (scenario: PatientScenario) => {
-    const state = envRef.current.reset(scenario);
-    cpoStateRef.current = state;
-    const display = stateToDisplayFields(state);
-    setDemographics(display.demographics);
-    setSymptoms(display.symptoms);
-    setPriorResults(scenario.displayPriorResults);
-    setInteractionLog([]);
-    setOutcomeInput('');
-    setCumulativeReward(0);
-    setEpisodeDone(false);
-  };
-
-  const fetchNextAction = async (state: CPOState, cumReward: number) => {
-    setIsLoading(true);
-    try {
-      const response = useMetaOptimizer
-        ? await runMetaOptimizedCPOPathway(apiKey, state, cumReward)
-        : await runCPOPathway(apiKey, state, cumReward);
-      setInteractionLog(prev => [...prev, { type: 'agent', content: response }]);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const startPathway = async () => {
-    if (!demographics || !symptoms) {
-      alert('Please fill in demographics and symptoms.');
-      return;
-    }
-
-    const scenario = buildCustomScenario(demographics, symptoms, priorResults);
-    const state = envRef.current.reset(scenario);
-    cpoStateRef.current = state;
-    setCumulativeReward(0);
-    setEpisodeDone(false);
-
-    setInteractionLog([{
-      type: 'user',
-      content: `Started pathway.\nDemographics: ${demographics}\nSymptoms: ${symptoms}\nPrior Results: ${priorResults || 'None'}`,
-    }]);
-
-    await fetchNextAction(state, 0);
-  };
-
-  const handleProvideOutcome = async () => {
-    if (!outcomeInput.trim() || !cpoStateRef.current) return;
-
-    const lastEntry = interactionLog[interactionLog.length - 1];
-    if (lastEntry?.type !== 'agent') return;
-
-    const actionData = lastEntry.content as CPOActionResponse;
-    const actionType = ACTION_TYPE_MAP[actionData.action] ?? 'Wait';
-
-    let stepReward = 0;
-    let nextState = cpoStateRef.current;
-    let done = false;
-
-    try {
-      const result = envRef.current.step({
-        type: actionType,
-        detail: actionData.specific_detail,
-        outcome: outcomeInput,
-      });
-      nextState = result.nextState;
-      stepReward = result.reward;
-      done = result.done;
-      cpoStateRef.current = nextState;
-    } catch (err) {
-      console.error('env.step error:', err);
-    }
-
-    const newCumReward = cumulativeReward + stepReward;
-    setCumulativeReward(newCumReward);
-    setEpisodeDone(done);
-
-    // Annotate the last agent entry with its step reward
-    setInteractionLog(prev =>
-      prev.map((e, i) =>
-        i === prev.length - 1 && e.type === 'agent'
-          ? { ...e, stepReward }
-          : e
-      )
-    );
-
-    setInteractionLog(prev => [...prev, {
-      type: 'user',
-      content: `Outcome for ${actionData.action}: ${outcomeInput}`,
-    }]);
-    setOutcomeInput('');
-
-    if (!done) {
-      await fetchNextAction(nextState, newCumReward);
-    } else {
-      setInteractionLog(prev => [...prev, {
-        type: 'agent',
-        content: {
-          action: 'Wait',
-          specific_detail: 'Episode complete',
-          reasoning: `Pathway concluded. Cumulative reward: ${newCumReward.toFixed(3)}`,
-          expected_reward_impact: { accuracy: '—', cost: '—', time: '—', patient_burden: '—' },
-        },
-      }]);
-    }
-  };
-
-  const getActionIcon = (action: string) => {
-    switch (action) {
-      case 'Order Test': return <FileText className="w-5 h-5 text-cyan-400" />;
-      case 'Prescribe': return <Pill className="w-5 h-5 text-green-400" />;
-      case 'Refer': return <ArrowRight className="w-5 h-5 text-blue-400" />;
-      case 'Escalate': return <AlertTriangle className="w-5 h-5 text-red-400" />;
-      case 'Wait': return <Clock className="w-5 h-5 text-yellow-400" />;
-      default: return <Brain className="w-5 h-5 text-cyan-400" />;
-    }
-  };
-
-  const levelColor = (level: PatientScenario['level']) => ({
-    simple: 'border-green-500/30 bg-green-500/10 text-green-300 hover:bg-green-500/20',
-    moderate: 'border-yellow-500/30 bg-yellow-500/10 text-yellow-300 hover:bg-yellow-500/20',
-    complex: 'border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/20',
-  })[level];
+function RewardDonut({ breakdown }: { breakdown: CPORewardBreakdown }) {
+  const segments = [
+    { key: 'accuracy_gain', color: '#4ade80', value: Math.abs(breakdown.accuracy_gain) },
+    { key: 'time_cost', color: '#f87171', value: Math.abs(breakdown.time_cost) },
+    { key: 'financial_cost', color: '#fb7185', value: Math.abs(breakdown.financial_cost) },
+    { key: 'burden', color: '#f43f5e', value: Math.abs(breakdown.burden) },
+  ];
+  const total = segments.reduce((sum, item) => sum + item.value, 0);
+  const radius = 28;
+  const circumference = 2 * Math.PI * radius;
+  let offset = 0;
 
   return (
+    <svg viewBox="0 0 72 72" className="h-36 w-36">
+      <circle cx="36" cy="36" r={radius} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="10" />
+      {segments.map((segment) => {
+        const fraction = total === 0 ? 0 : segment.value / total;
+        const dash = fraction * circumference;
+        const currentOffset = offset;
+        offset += dash;
+        return (
+          <circle
+            key={segment.key}
+            cx="36"
+            cy="36"
+            r={radius}
+            fill="none"
+            stroke={segment.color}
+            strokeWidth="10"
+            strokeLinecap="butt"
+            strokeDasharray={`${dash} ${circumference - dash}`}
+            strokeDashoffset={-currentOffset}
+            transform="rotate(-90 36 36)"
+          />
+        );
+      })}
+      <text x="36" y="34" textAnchor="middle" className="fill-gray-300 text-[9px] tracking-wide">
+        STEP
+      </text>
+      <text x="36" y="44" textAnchor="middle" className="fill-white text-[10px] font-semibold">
+        {totalReward(breakdown).toFixed(2)}
+      </text>
+    </svg>
+  );
+}
+
+export const CPOLayout = ({ title, subtitle, children }: CPOLayoutProps) => {
+  return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
-      <div className="mb-12">
-        <h1 className="text-4xl font-bold text-white mb-4 flex items-center gap-3">
-          <Brain className="w-10 h-10 text-cyan-400" />
-          Clinical Pathway Optimizer (CPO)
+      <div className="mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold text-white flex items-center gap-3">
+          <Brain className="w-9 h-9 text-cyan-400" />
+          {title}
         </h1>
-        <p className="text-xl text-gray-400">
-          Agent-driven decision making maximizing diagnostic accuracy while minimizing time, cost, and patient burden.
-        </p>
-        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-cyan-500/40 bg-cyan-500/10 px-4 py-1.5 text-xs text-cyan-300">
-          <Cpu className="w-4 h-4" />
-          {useMetaOptimizer ? 'Meta Agent Optimizer Environment: Active' : 'Baseline Single-Agent Mode'}
-        </div>
+        <p className="mt-3 text-gray-400 max-w-3xl">{subtitle}</p>
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-        {/* State Configuration Panel */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="glass-panel p-6 rounded-2xl relative overflow-hidden h-full">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl" />
-
-            <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-              <Stethoscope className="w-5 h-5 text-cyan-400" />
-              Patient State
-            </h2>
-
-            <div className="space-y-4 relative z-10">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium text-gray-400">Curriculum Scenarios</label>
-                <div className="flex flex-wrap gap-2">
-                  {allScenarios.map(s => (
-                    <button
-                      key={s.id}
-                      onClick={() => loadScenario(s)}
-                      className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${levelColor(s.level)}`}
-                    >
-                      {s.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Demographics</label>
-                <input
-                  type="text"
-                  value={demographics}
-                  onChange={(e) => setDemographics(e.target.value)}
-                  placeholder="e.g. 45M, Hx smoking"
-                  className="w-full bg-deepnavy border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-cyan-400/50 transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Symptoms</label>
-                <textarea
-                  value={symptoms}
-                  onChange={(e) => setSymptoms(e.target.value)}
-                  placeholder="e.g. Chest pain, diaphoresis"
-                  className="w-full bg-deepnavy border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-cyan-400/50 transition-colors min-h-[80px]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Prior Results / History</label>
-                <textarea
-                  value={priorResults}
-                  onChange={(e) => setPriorResults(e.target.value)}
-                  placeholder="e.g. EKG normal 1 hr ago"
-                  className="w-full bg-deepnavy border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-cyan-400/50 transition-colors min-h-[80px]"
-                />
-              </div>
-
-              {/* Reward tracker */}
-              {interactionLog.length > 0 && (
-                <div className="flex items-center justify-between bg-black/30 rounded-xl px-4 py-3 border border-white/5">
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
-                    <TrendingUp className="w-4 h-4 text-cyan-400" />
-                    Cumulative Reward
-                  </div>
-                  <span className={`font-mono text-sm font-semibold ${cumulativeReward >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {cumulativeReward.toFixed(3)}
-                  </span>
-                </div>
-              )}
-
-              {episodeDone && (
-                <div className="text-center text-xs text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 rounded-lg py-2">
-                  Episode complete — reset to start a new pathway
-                </div>
-              )}
-
-              <button
-                onClick={startPathway}
-                disabled={isLoading}
-                className="w-full py-3 px-4 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 border border-cyan-500/50 rounded-lg text-cyan-300 font-medium transition-all group relative overflow-hidden disabled:opacity-50"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 translate-y-full group-hover:translate-y-0 transition-transform" />
-                <span className="relative flex items-center justify-center gap-2">
-                  <Activity className="w-5 h-5" />
-                  Initialize Pathway Agent
-                </span>
-              </button>
-
-              <label className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 px-4 py-3">
-                <div>
-                  <p className="text-sm text-white">Meta Agent Optimizer</p>
-                  <p className="text-xs text-gray-400">Planner -&gt; Critic -&gt; Selector optimization loop on Gemini</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setUseMetaOptimizer(prev => !prev)}
-                  className={`relative h-6 w-11 rounded-full transition-colors ${useMetaOptimizer ? 'bg-cyan-500/70' : 'bg-gray-600'}`}
-                  aria-label="Toggle Meta Agent Optimizer"
-                >
-                  <span
-                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${useMetaOptimizer ? 'translate-x-5' : 'translate-x-0.5'}`}
-                  />
-                </button>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        {/* Pathway Terminal */}
-        <div className="lg:col-span-8 flex flex-col h-[700px]">
-          <div className="flex-1 glass-panel rounded-2xl rounded-b-none border-b-0 p-6 overflow-y-auto relative flex flex-col space-y-6">
-
-            {interactionLog.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-gray-500">
-                <Brain className="w-16 h-16 opacity-20 mb-4 animate-[spin_10s_linear_infinite]" />
-                <p>Waiting for State Initialization...</p>
-              </div>
-            ) : (
-              interactionLog.map((log, index) => (
-                <div key={index} className={`flex w-full ${log.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-
-                  {log.type === 'user' ? (
-                    <div className="max-w-[80%] bg-blue-900/40 border border-blue-500/30 rounded-2xl rounded-tr-none px-5 py-3 text-sm text-gray-200">
-                      <pre className="font-sans whitespace-pre-wrap">{log.content as string}</pre>
-                    </div>
-                  ) : (
-                    <div className="max-w-[90%] w-full bg-cyan-900/20 border border-cyan-500/30 rounded-2xl rounded-tl-none p-5 relative overflow-hidden">
-                      <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500" />
-
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-cyan-500/10 rounded-lg">
-                          {getActionIcon((log.content as CPOActionResponse).action)}
-                        </div>
-                        <div>
-                          <p className="text-xs text-cyan-400 uppercase tracking-widest font-semibold flex items-center gap-1">
-                            <ShieldCheck className="w-3 h-3" /> Recommended Action
-                          </p>
-                          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                            {(log.content as CPOActionResponse).action}
-                            <ChevronRight className="w-4 h-4 text-gray-500" />
-                            <span className="text-gray-300 font-medium">{(log.content as CPOActionResponse).specific_detail}</span>
-                          </h3>
-                        </div>
-                        {log.stepReward !== undefined && (
-                          <span className={`ml-auto text-xs font-mono font-semibold ${log.stepReward >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            Δr {log.stepReward >= 0 ? '+' : ''}{log.stepReward.toFixed(3)}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="pl-12 border-l-2 border-white/5 space-y-4">
-                        <div>
-                          <p className="text-xs text-gray-400 mb-1">Reasoning Constraint Analysis:</p>
-                          <p className="text-sm text-gray-300">{(log.content as CPOActionResponse).reasoning}</p>
-                        </div>
-
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                          <div className="bg-black/20 rounded border border-white/5 p-2 text-center">
-                            <span className="block text-[10px] text-gray-400 uppercase">Accuracy</span>
-                            <span className="text-xs font-mono text-green-400">{(log.content as CPOActionResponse).expected_reward_impact.accuracy}</span>
-                          </div>
-                          <div className="bg-black/20 rounded border border-white/5 p-2 text-center">
-                            <span className="block text-[10px] text-gray-400 uppercase">Cost</span>
-                            <span className="text-xs font-mono text-cyan-400">{(log.content as CPOActionResponse).expected_reward_impact.cost}</span>
-                          </div>
-                          <div className="bg-black/20 rounded border border-white/5 p-2 text-center">
-                            <span className="block text-[10px] text-gray-400 uppercase">Time</span>
-                            <span className="text-xs font-mono text-yellow-400">{(log.content as CPOActionResponse).expected_reward_impact.time}</span>
-                          </div>
-                          <div className="bg-black/20 rounded border border-white/5 p-2 text-center">
-                            <span className="block text-[10px] text-gray-400 uppercase">Burden</span>
-                            <span className="text-xs font-mono text-purple-400">{(log.content as CPOActionResponse).expected_reward_impact.patient_burden}</span>
-                          </div>
-                        </div>
-
-                        {(log.content as CPOActionResponse).optimizer_trace && (
-                          <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-3">
-                            <p className="text-[11px] uppercase tracking-wider text-cyan-300 mb-1">Optimizer Trace</p>
-                            <p className="text-xs text-gray-300">
-                              {(log.content as CPOActionResponse).optimizer_trace?.environment}
-                            </p>
-                            <p className="text-xs text-gray-400 mt-1">
-                              Reward: {(log.content as CPOActionResponse).optimizer_trace?.reward_function}
-                            </p>
-                            <p className="text-xs text-gray-400 mt-1">
-                              Candidates: {(log.content as CPOActionResponse).optimizer_trace?.candidate_count} | Selected: #
-                              {(log.content as CPOActionResponse).optimizer_trace?.selected_candidate_index}
-                            </p>
-                            <p className="text-xs text-gray-400 mt-1">
-                              {(log.content as CPOActionResponse).optimizer_trace?.selection_reason}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                </div>
-              ))
-            )}
-
-            {isLoading && (
-              <div className="flex w-full justify-start">
-                <div className="max-w-[80%] bg-cyan-900/10 border border-cyan-500/20 rounded-2xl rounded-tl-none px-5 py-4 flex items-center gap-3">
-                  <Activity className="w-5 h-5 text-cyan-400 animate-pulse" />
-                  <span className="text-sm text-cyan-400/70 font-mono tracking-widest uppercase animate-pulse">Agent Computing Path...</span>
-                </div>
-              </div>
-            )}
-
-            <div ref={chatEndRef} />
-          </div>
-
-          <div className="glass-panel rounded-2xl rounded-t-none p-4 bg-black/20">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={outcomeInput}
-                onChange={(e) => setOutcomeInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleProvideOutcome()}
-                placeholder="Simulate action outcome (e.g. 'Troponin is elevated', 'Patient refused test')..."
-                className="flex-1 bg-deepnavy border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400/50 transition-colors disabled:opacity-50"
-                disabled={isLoading || episodeDone || interactionLog.length === 0 || interactionLog[interactionLog.length - 1].type === 'user'}
-              />
-              <button
-                onClick={handleProvideOutcome}
-                disabled={isLoading || episodeDone || !outcomeInput.trim() || interactionLog.length === 0 || interactionLog[interactionLog.length - 1].type === 'user'}
-                className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 p-3 rounded-xl border border-cyan-500/50 transition-colors disabled:opacity-50"
-              >
-                <ArrowUpCircle className="w-6 h-6" />
-              </button>
-            </div>
-            <p className="text-[10px] text-gray-500 mt-2 text-center">
-              Enter the outcome to progress the state. The agent will re-calculate the next optimal step based on Reward constraints.
-            </p>
-          </div>
-        </div>
-
-      </div>
+      {children}
     </div>
+  );
+};
+
+export const CPO = () => {
+  const [selectedLevel, setSelectedLevel] = useState<CurriculumLevel>('simple');
+  const scenarioOptions = useMemo(() => getCurriculumScenarios(selectedLevel), [selectedLevel]);
+  const [scenario, setScenario] = useState<PatientScenario>(() => generateScenario('simple'));
+  const envRef = useRef(new CPOEnv());
+  const [state, setState] = useState<CPOState>(() => envRef.current.reset(scenario));
+  const [recommendation, setRecommendation] = useState<CPORecommendation | null>(null);
+  const [latestBreakdown, setLatestBreakdown] = useState<CPORewardBreakdown>(ZERO_REWARD);
+  const [cumulativeReward, setCumulativeReward] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [episodeDone, setEpisodeDone] = useState(false);
+  const [doneLabel, setDoneLabel] = useState('');
+
+  const fetchRecommendation = async (currentState: CPOState, currentScenario: PatientScenario) => {
+    setIsLoading(true);
+    await sleep(700);
+    const nextAction = currentScenario.optimalActionSequence[currentState.stepCount] ?? 'Wait';
+    const rec = buildRecommendation(
+      nextAction,
+      RECOMMENDATION_DETAIL[nextAction],
+      `State trend: ${currentState.currentAssessment} Prioritize ${nextAction} to improve expected reward while respecting budget and step limits.`
+    );
+    setRecommendation(rec);
+    setIsLoading(false);
+  };
+
+  const resetEpisode = (nextScenario: PatientScenario) => {
+    const resetState = envRef.current.reset(nextScenario);
+    setState(resetState);
+    setRecommendation(null);
+    setLatestBreakdown(ZERO_REWARD);
+    setCumulativeReward(0);
+    setEpisodeDone(false);
+    setDoneLabel('');
+    void fetchRecommendation(resetState, nextScenario);
+  };
+
+  useEffect(() => {
+    resetEpisode(scenario);
+  }, [scenario]);
+
+  const handleStep = async () => {
+    if (!recommendation || episodeDone) return;
+    setIsLoading(true);
+    await sleep(400);
+    const result = envRef.current.step({
+      type: recommendation.action,
+      detail: recommendation.specific_detail,
+      outcome: state.currentAssessment,
+    });
+    setState(result.nextState);
+    setLatestBreakdown(result.reward_breakdown);
+    setCumulativeReward((prev) => Number((prev + result.reward).toFixed(3)));
+    setEpisodeDone(result.done);
+    if (result.done) {
+      setDoneLabel(result.diagnosisReached ? 'Diagnosis Reached ✓' : 'Max Steps Exceeded ✗');
+      setRecommendation(null);
+      setIsLoading(false);
+      return;
+    }
+    await fetchRecommendation(result.nextState, scenario);
+  };
+
+  const vitals = [
+    { label: 'BP', value: state.vitals.bp },
+    { label: 'HR', value: state.vitals.hr },
+    { label: 'Temp', value: state.vitals.temp },
+    { label: 'SpO2', value: state.vitals.spo2 },
+  ];
+
+  return (
+    <CPOLayout
+      title="Clinical Pathway Optimizer"
+      subtitle="Split-panel CPO workspace: patient context, action timeline, and agent recommendations with reward intelligence."
+    >
+      <div className="mb-6 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-300">Curriculum</label>
+          <select
+            value={selectedLevel}
+            onChange={(e) => {
+              const nextLevel = e.target.value as CurriculumLevel;
+              setSelectedLevel(nextLevel);
+              setScenario(generateScenario(nextLevel));
+            }}
+            className="bg-deepnavy border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400/50"
+          >
+            <option value="simple">Simple</option>
+            <option value="moderate">Moderate</option>
+            <option value="complex">Complex</option>
+          </select>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {scenarioOptions.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setScenario(item)}
+              className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                scenario.id === item.id
+                  ? 'border-cyan-400/60 bg-cyan-500/20 text-cyan-200'
+                  : levelBadgeClass[item.level]
+              }`}
+            >
+              {item.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col xl:flex-row gap-6">
+        <section className="glass-panel rounded-2xl p-5 xl:w-1/3 space-y-4">
+          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+            <Stethoscope className="w-5 h-5 text-cyan-400" />
+            Patient State
+          </h2>
+          <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-gray-300">
+            {state.demographics.age}
+            {state.demographics.sex}, {state.demographics.weight}kg
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">Vitals</p>
+            <div className="flex flex-wrap gap-2">
+              {vitals.map((vital) => (
+                <span
+                  key={vital.label}
+                  className={`rounded-full border px-2.5 py-1 text-xs ${vitalTone(vital.label, vital.value)}`}
+                >
+                  {vital.label}: {vital.value}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">Symptoms</p>
+            <div className="flex flex-wrap gap-2">
+              {state.symptoms.map((symptom) => (
+                <span
+                  key={symptom}
+                  className="rounded-full border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs text-purple-200"
+                >
+                  {symptom}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">Labs</p>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(state.labResults).map(([name, value]) => (
+                <span key={name} className={`rounded-full border px-2.5 py-1 text-xs ${labBadgeClass(value)}`}>
+                  {name}: {value}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="glass-panel rounded-2xl p-5 xl:w-1/3">
+          <h2 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+            <TrendingUp className="w-5 h-5 text-cyan-400" />
+            Action Timeline
+          </h2>
+          <div className="space-y-5">
+            {state.actionHistory.length === 0 && (
+              <div className="rounded-xl border border-dashed border-white/15 px-4 py-6 text-center text-sm text-gray-500">
+                No actions yet. Run the first recommendation.
+              </div>
+            )}
+            {state.actionHistory.map((entry, index) => (
+              <div key={`${entry.action.type}-${index}`} className="relative pl-8">
+                {index < state.actionHistory.length - 1 && (
+                  <span className="absolute left-[0.6rem] top-4 h-full w-px bg-white/15" />
+                )}
+                <span className="absolute left-0 top-1.5 h-3 w-3 rounded-full bg-cyan-400" />
+                <p className="text-sm font-medium text-white">
+                  Step {index + 1}: {entry.action.type}
+                </p>
+                <p className="text-xs text-gray-400">{entry.action.detail}</p>
+                <p className={entry.reward >= 0 ? 'text-xs text-green-300 mt-1' : 'text-xs text-red-300 mt-1'}>
+                  Reward: {entry.reward >= 0 ? '+' : ''}
+                  {entry.reward.toFixed(3)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="glass-panel rounded-2xl p-5 xl:w-1/3 space-y-4">
+          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+            <Brain className="w-5 h-5 text-cyan-400" />
+            Agent Recommendation
+          </h2>
+          {isLoading ? (
+            <div className="rounded-xl border border-cyan-500/25 bg-cyan-500/10 p-4 flex items-center gap-3 text-cyan-200">
+              <Activity className="w-4 h-4 animate-spin" />
+              <span className="text-sm">Agent is evaluating next step...</span>
+            </div>
+          ) : recommendation ? (
+            <div className="space-y-4">
+              <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                <div className="flex items-center gap-2 text-cyan-200 text-sm">
+                  {ACTION_ICON[recommendation.action]}
+                  {recommendation.actionLabel}
+                </div>
+                <p className="mt-2 text-sm text-gray-200">{recommendation.specific_detail}</p>
+                <p className="mt-3 text-xs text-gray-400">{recommendation.reasoning}</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/20 p-4 flex items-center justify-between">
+                <RewardDonut breakdown={recommendation.reward_breakdown} />
+                <div className="text-xs text-gray-400 space-y-1">
+                  <p className="text-green-300">Accuracy {recommendation.reward_breakdown.accuracy_gain.toFixed(2)}</p>
+                  <p className="text-red-300">Time {recommendation.reward_breakdown.time_cost.toFixed(2)}</p>
+                  <p className="text-red-300">Cost {recommendation.reward_breakdown.financial_cost.toFixed(2)}</p>
+                  <p className="text-red-300">Burden {recommendation.reward_breakdown.burden.toFixed(2)}</p>
+                </div>
+              </div>
+              <button
+                onClick={handleStep}
+                className="w-full rounded-xl border border-cyan-500/50 bg-cyan-500/15 px-4 py-2 text-sm font-medium text-cyan-200 hover:bg-cyan-500/25 transition-colors"
+              >
+                Apply Recommended Action
+              </button>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-gray-400">
+              Recommendation unavailable.
+            </div>
+          )}
+
+          <RewardChart metrics={latestBreakdown} />
+
+          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-400">Cumulative Reward</span>
+              <span className={cumulativeReward >= 0 ? 'text-green-300 font-mono' : 'text-red-300 font-mono'}>
+                {cumulativeReward >= 0 ? '+' : ''}
+                {cumulativeReward.toFixed(3)}
+              </span>
+            </div>
+            <p className="mt-2 text-xs text-gray-500">{state.currentAssessment}</p>
+            {episodeDone && (
+              <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-cyan-500/40 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-200">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                {doneLabel}
+              </div>
+            )}
+            <button
+              onClick={() => resetEpisode(scenario)}
+              className="mt-4 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors"
+            >
+              Reset Episode
+            </button>
+          </div>
+        </section>
+      </div>
+    </CPOLayout>
   );
 };

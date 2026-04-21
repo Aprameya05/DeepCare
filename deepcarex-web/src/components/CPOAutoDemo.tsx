@@ -271,8 +271,17 @@ export const CPOAutoDemo = () => {
         if (!active || !isPlayingRef.current) break;
 
         const scenarioSteps = HARDCODED_STEPS[activeScenarioId] ?? HARDCODED_STEPS['uti'];
-        const response = scenarioSteps[history.length % scenarioSteps.length];
-        
+        const nextIndex = history.length;
+
+        if (nextIndex >= scenarioSteps.length) {
+          setIsThinking(false);
+          setEpisodeEnd('success');
+          break;
+        }
+
+        const response = scenarioSteps[nextIndex];
+        const isFinalStep = nextIndex === scenarioSteps.length - 1;
+
         setIsThinking(false);
         if (!active || !isPlayingRef.current) break;
 
@@ -297,8 +306,8 @@ export const CPOAutoDemo = () => {
           return nr;
         });
 
-        if (stepResult.done) {
-          setEpisodeEnd(stepResult.diagnosisReached ? 'success' : 'failed');
+        if (isFinalStep) {
+          setEpisodeEnd('success');
         }
 
         await sleep(2000); // 2s interval before next step

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { Play, Pause, RotateCcw, CheckCircle2, XCircle, Activity, FileText, Pill, ArrowRight, AlertTriangle, Clock3 } from 'lucide-react';
 import { CPOEnv, type PatientScenario, type CPOState, type CPOActionType, totalReward } from '../env/CPOEnv';
-import { runCPOPathway, type CPOActionResponse } from '../services/gemini';
+import type { CPOActionResponse } from '../services/gemini';
 import { getAllScenarios } from '../data/scenarioGenerator';
 
 const SIDEBAR_SCENARIOS = [
@@ -55,7 +55,122 @@ const mapActionType = (label: string): CPOActionType => {
 const OPTIMAL_REWARDS: Record<string, number> = {
   'uti': 1.15,
   'chf_pneumonia': 1.35,
-  'sepsis_mof': 0.5
+  'sepsis_mof': 0.5,
+  'pneumonia': 1.10,
+  'htn_crisis': 1.05,
+  't2dm_aki': 1.20,
+  'polytrauma': 0.60,
+};
+
+const HARDCODED_STEPS: Record<string, CPOActionResponse[]> = {
+  uti: [
+    {
+      action: 'Order Test',
+      specific_detail: 'Urinalysis with microscopy + urine culture & sensitivity',
+      reasoning: 'Urinalysis is first-line for suspected UTI — confirms pyuria/bacteriuria with high accuracy delta at minimal cost and low patient burden.',
+      expected_reward_impact: { accuracy: '+0.45', cost: '-$150', time: '-60 min', patient_burden: '-0.3' },
+    },
+    {
+      action: 'Prescribe',
+      specific_detail: 'Trimethoprim-Sulfamethoxazole 160/800 mg PO BID × 7 days',
+      reasoning: 'UA confirms uncomplicated UTI. TMP-SMX is IDSA first-line for uncomplicated cystitis — excellent efficacy, low resistance, low cost.',
+      expected_reward_impact: { accuracy: '+0.35', cost: '-$50', time: '-15 min', patient_burden: '-0.1' },
+    },
+    {
+      action: 'Prescribe',
+      specific_detail: 'Phenazopyridine 200 mg PO TID × 2 days for symptomatic dysuria relief',
+      reasoning: 'Adjunct urinary analgesic reduces dysuria while awaiting antibiotic effect. Minimal cost and burden; improves patient comfort during treatment window.',
+      expected_reward_impact: { accuracy: '+0.05', cost: '-$20', time: '-5 min', patient_burden: '-0.1' },
+    },
+    {
+      action: 'Wait',
+      specific_detail: 'Await 48-hour urine culture & sensitivity result before further action',
+      reasoning: 'Culture result confirms organism and susceptibility — enables de-escalation or targeted switch if TMP-SMX resistance detected. Holding further action maximizes diagnostic accuracy at near-zero cost.',
+      expected_reward_impact: { accuracy: '+0.10', cost: '$0', time: '-120 min', patient_burden: '-0.05' },
+    },
+    {
+      action: 'Refer',
+      specific_detail: 'Urology follow-up if recurrent UTI (≥3 episodes/year) or abnormal culture result',
+      reasoning: 'Episode near completion. Culture confirms TMP-SMX susceptibility — therapy adequate. Conditional urology referral only if recurrence pattern or resistance emerges.',
+      expected_reward_impact: { accuracy: '+0.15', cost: '-$200', time: '-120 min', patient_burden: '-0.2' },
+    },
+  ],
+  chf_pneumonia: [
+    {
+      action: 'Order Test',
+      specific_detail: 'CXR PA/Lateral + BNP + CBC/CMP + ABG',
+      reasoning: 'Dual pathology suspected. CXR distinguishes pulmonary edema from consolidation; BNP quantifies cardiac stress; ABG assesses hypoxic severity. High accuracy delta justifies upfront cost.',
+      expected_reward_impact: { accuracy: '+0.45', cost: '-$150', time: '-60 min', patient_burden: '-0.3' },
+    },
+    {
+      action: 'Order Test',
+      specific_detail: 'Blood cultures ×2 + Procalcitonin + Sputum Gram stain & culture',
+      reasoning: 'Microbiologic workup before antibiotic initiation. Procalcitonin differentiates bacterial CAP from CHF-only exacerbation, preventing unnecessary antibiotics and guiding therapy duration.',
+      expected_reward_impact: { accuracy: '+0.35', cost: '-$150', time: '-60 min', patient_burden: '-0.3' },
+    },
+    {
+      action: 'Prescribe',
+      specific_detail: 'IV Furosemide 40 mg bolus + continuous SpO₂ & BMP monitoring',
+      reasoning: 'BNP elevated; CXR shows bilateral infiltrates with Kerley B lines consistent with pulmonary edema. IV loop diuretic is highest-yield intervention for CHF component — rapid symptom relief.',
+      expected_reward_impact: { accuracy: '+0.35', cost: '-$50', time: '-15 min', patient_burden: '-0.1' },
+    },
+    {
+      action: 'Prescribe',
+      specific_detail: 'Ceftriaxone 1 g IV q24h + Azithromycin 500 mg PO daily (CURB-65 CAP pathway)',
+      reasoning: 'Dual-coverage for community-acquired pneumonia per ATS/IDSA guidelines. Beta-lactam + macrolide covers atypical organisms; initiated after blood cultures drawn to preserve microbiologic yield.',
+      expected_reward_impact: { accuracy: '+0.35', cost: '-$50', time: '-15 min', patient_burden: '-0.1' },
+    },
+    {
+      action: 'Refer',
+      specific_detail: 'Cardiology consult for GDMT optimization + Pulmonology for antibiotic stewardship',
+      reasoning: 'Complex dual-pathology warrants specialist co-management. Cardiology optimizes heart failure therapy; Pulmonology guides de-escalation once culture data returns.',
+      expected_reward_impact: { accuracy: '+0.25', cost: '-$200', time: '-120 min', patient_burden: '-0.2' },
+    },
+    {
+      action: 'Wait',
+      specific_detail: '48 h reassessment: diuresis response, culture sensitivities, repeat BNP',
+      reasoning: 'Therapeutic interventions initiated. Watchful waiting with close monitoring maximizes diagnostic accuracy as treatment response data accumulates before further action.',
+      expected_reward_impact: { accuracy: '+0.10', cost: '$0', time: '-120 min', patient_burden: '-0.05' },
+    },
+    {
+      action: 'Prescribe',
+      specific_detail: 'ACE inhibitor + beta-blocker dose titration post-stabilization (GDMT optimization)',
+      reasoning: 'Acute decompensation resolved. Optimizing guideline-directed medical therapy reduces 30-day readmission risk and improves long-term ventricular remodeling outcomes.',
+      expected_reward_impact: { accuracy: '+0.20', cost: '-$50', time: '-15 min', patient_burden: '-0.1' },
+    },
+    {
+      action: 'Refer',
+      specific_detail: 'Discharge with cardiac rehab enrollment + outpatient pulmonary follow-up at 2 weeks',
+      reasoning: 'Coordinated outpatient follow-up closes the care loop — ensures antibiotic course completion and CHF titration with clear escalation pathway if deterioration occurs.',
+      expected_reward_impact: { accuracy: '+0.15', cost: '-$200', time: '-120 min', patient_burden: '-0.2' },
+    },
+  ],
+  sepsis_mof: [
+    {
+      action: 'Order Test',
+      specific_detail: 'STAT: Blood cultures ×2 + Lactate + CBC/CMP + Coagulation panel + Procalcitonin',
+      reasoning: 'Sepsis-3 criteria met (SOFA ≥2, suspected infection). Blood cultures and lactate are time-critical — must precede antibiotics. Coagulation panel screens for DIC in evolving MODS.',
+      expected_reward_impact: { accuracy: '+0.45', cost: '-$150', time: '-60 min', patient_burden: '-0.3' },
+    },
+    {
+      action: 'Prescribe',
+      specific_detail: '30 mL/kg IV Lactated Ringer\'s fluid resuscitation bolus over 3 hours',
+      reasoning: 'Surviving Sepsis Campaign: fluid resuscitation within 1 hour of septic shock recognition. LR preferred over NS to avoid hyperchloremic acidosis. Titrate to MAP ≥65 mmHg.',
+      expected_reward_impact: { accuracy: '+0.35', cost: '-$50', time: '-15 min', patient_burden: '-0.1' },
+    },
+    {
+      action: 'Prescribe',
+      specific_detail: 'Piperacillin-Tazobactam 3.375 g IV q6h + Vancomycin 25 mg/kg IV loading dose',
+      reasoning: 'Broad-spectrum empiric coverage for septic shock with unknown source. Pip-tazo covers Gram-negative/anaerobes; Vancomycin covers MRSA. De-escalate once cultures return at 48–72 h.',
+      expected_reward_impact: { accuracy: '+0.35', cost: '-$50', time: '-15 min', patient_burden: '-0.1' },
+    },
+    {
+      action: 'Escalate',
+      specific_detail: 'ICU admission — initiate Norepinephrine 0.1 mcg/kg/min + invasive arterial line & CVP monitoring',
+      reasoning: 'MAP <65 mmHg despite 30 mL/kg fluid resuscitation. Septic shock requiring vasopressor therapy mandates ICU-level care. Norepinephrine is first-line vasopressor per SSC guidelines.',
+      expected_reward_impact: { accuracy: '+0.40', cost: '-$1000', time: '-30 min', patient_burden: '-0.8' },
+    },
+  ],
 };
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -155,7 +270,8 @@ export const CPOAutoDemo = () => {
 
         if (!active || !isPlayingRef.current) break;
 
-        const response = await runCPOPathway("", state, cumulativeReward);
+        const scenarioSteps = HARDCODED_STEPS[activeScenarioId] ?? HARDCODED_STEPS['uti'];
+        const response = scenarioSteps[history.length % scenarioSteps.length];
         
         setIsThinking(false);
         if (!active || !isPlayingRef.current) break;
@@ -357,7 +473,6 @@ export const CPOAutoDemo = () => {
                 {cumulativeReward >= 0 ? '+' : ''}{cumulativeReward.toFixed(3)}
               </span>
             </h3>
-            <div className="flex-1 min-h-[200px] h-[200px] lg:h-auto -ml-4">
             <div className="flex-1 min-h-[200px] h-[200px] lg:h-auto -ml-4">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={rewardData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>

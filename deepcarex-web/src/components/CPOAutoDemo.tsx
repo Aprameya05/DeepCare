@@ -490,7 +490,6 @@ export const CPOAutoDemo = () => {
             </div>
           </div>
         </div>
-        </div>
 
         {/* Reasoning Panel */}
         <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl min-h-[250px] relative">

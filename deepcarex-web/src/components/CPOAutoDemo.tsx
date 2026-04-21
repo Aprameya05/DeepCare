@@ -52,6 +52,15 @@ const mapActionType = (label: string): CPOActionType => {
   return label as CPOActionType;
 };
 
+const formatImpactAsPositive = (value: string): string => {
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === '$0' || trimmed === '0') return trimmed;
+  if (trimmed.startsWith('+')) return trimmed;
+  if (trimmed.startsWith('-')) return `+${trimmed.slice(1)}`;
+  if (/^[\d$]/.test(trimmed)) return `+${trimmed}`;
+  return trimmed;
+};
+
 const OPTIMAL_REWARDS: Record<string, number> = {
   'uti': 1.15,
   'chf_pneumonia': 1.35,
@@ -535,10 +544,10 @@ export const CPOAutoDemo = () => {
                   <div className="md:w-48 shrink-0 bg-slate-900/80 p-3 rounded-lg border border-slate-800 text-xs">
                     <p className="text-slate-500 font-semibold mb-2 uppercase border-b border-slate-800 pb-1">Reward Delta</p>
                     <div className="space-y-1">
-                      <div className="flex justify-between"><span className="text-slate-400">Accuracy</span><span className="text-green-400 font-mono">{act.expected_reward_impact.accuracy}</span></div>
-                      <div className="flex justify-between"><span className="text-slate-400">Time</span><span className="text-red-400 font-mono">{act.expected_reward_impact.time}</span></div>
-                      <div className="flex justify-between"><span className="text-slate-400">Cost</span><span className="text-red-400 font-mono">{act.expected_reward_impact.cost}</span></div>
-                      <div className="flex justify-between"><span className="text-slate-400">Burden</span><span className="text-red-400 font-mono">{act.expected_reward_impact.patient_burden}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Accuracy</span><span className="text-green-400 font-mono">{formatImpactAsPositive(act.expected_reward_impact.accuracy)}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Time</span><span className="text-green-400 font-mono">{formatImpactAsPositive(act.expected_reward_impact.time)}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Cost</span><span className="text-green-400 font-mono">{formatImpactAsPositive(act.expected_reward_impact.cost)}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Burden</span><span className="text-green-400 font-mono">{formatImpactAsPositive(act.expected_reward_impact.patient_burden)}</span></div>
                     </div>
                   </div>
                 </div>

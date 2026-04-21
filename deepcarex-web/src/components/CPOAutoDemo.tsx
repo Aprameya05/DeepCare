@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Component, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { Play, Pause, RotateCcw, CheckCircle2, XCircle, Activity, FileText, Pill, ArrowRight, AlertTriangle, Clock3 } from 'lucide-react';
@@ -12,7 +12,25 @@ const SIDEBAR_SCENARIOS = [
   { id: 'sepsis_mof', icon: '🆘', title: 'Sepsis (Complex)', desc: '58M, rigors, hypotension' }
 ];
 
-const ACTION_ICON: Record<string, React.ReactNode> = {
+class CPOStepErrorBoundary extends Component<{ children: ReactNode }, { caught: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { caught: false };
+  }
+  static getDerivedStateFromError() { return { caught: true }; }
+  render() {
+    if (this.state.caught) {
+      return (
+        <div className="p-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-yellow-300 text-sm text-center">
+          Step failed — retrying...
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const ACTION_ICON: Record<string, ReactNode> = {
   'Order Test': <FileText className="w-5 h-5" />,
   'Prescribe': <Pill className="w-5 h-5" />,
   'Refer': <ArrowRight className="w-5 h-5" />,
@@ -23,9 +41,9 @@ const ACTION_ICON: Record<string, React.ReactNode> = {
 const ACTION_COLOR: Record<string, string> = {
   'Order Test': 'bg-blue-500/20 text-blue-300 border-blue-500/50',
   'Prescribe': 'bg-green-500/20 text-green-300 border-green-500/50',
-  'Refer': 'bg-purple-500/20 text-purple-300 border-purple-500/50',
+  'Refer': 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50',
   'Escalate': 'bg-red-500/20 text-red-300 border-red-500/50',
-  'Wait': 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50',
+  'Wait': 'bg-gray-500/20 text-gray-300 border-gray-500/50',
 };
 
 // Map Gemini response actions back to CPOActionType
@@ -129,22 +147,43 @@ export const CPOAutoDemo = () => {
     return () => { active = false; };
   }, [state, scenario, cumulativeReward, episodeEnd]);
 
-  if (!state || !scenario) return null;
+  if (!state || !scenario) {
+    return (
+      <div className="flex flex-col lg:flex-row gap-6 animate-pulse">
+        <div className="lg:w-1/4 space-y-4">
+          {[0, 1, 2].map(i => (
+            <div key={i} className="h-20 rounded-2xl bg-slate-800/60" />
+          ))}
+        </div>
+        <div className="lg:w-3/4 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="h-56 rounded-2xl bg-slate-800/60" />
+            <div className="h-56 rounded-2xl bg-slate-800/60" />
+          </div>
+          <div className="h-64 rounded-2xl bg-slate-800/60" />
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6">
+    <div className="relative flex flex-col lg:flex-row gap-6">
+      {/* Demo Mode watermark */}
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-cyan-400 pointer-events-none">
+        <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse inline-block" />
+        Demo Mode
+      </div>
       {/* Sidebar Switcher */}
-      <div className="lg:w-1/4 flex flex-row overflow-x-auto lg:flex-col gap-4 pb-2 lg:pb-0 snap-x hide-scrollbar scroll-smooth">
-        <div className="hidden lg:block w-full">
-          <h3 className="text-slate-400 font-semibold tracking-wider text-sm uppercase mb-2">Select Scenario</h3>
-        </div>
+      <div className="lg:w-1/4">
+        <h3 className="text-slate-400 font-semibold tracking-wider text-sm uppercase mb-3 lg:mb-6">Select Scenario</h3>
+        <div className="flex flex-row overflow-x-auto lg:flex-col gap-4 pb-2 lg:pb-0 snap-x hide-scrollbar scroll-smooth">
         {SIDEBAR_SCENARIOS.map(s => (
           <button
             key={s.id}
             onClick={() => resetDemo(s.id)}
             className={`shrink-0 w-[280px] lg:w-full snap-start text-left p-4 rounded-2xl transition-all border ${
-              activeScenarioId === s.id 
-                ? 'bg-cyan-500/10 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.2)]' 
+              activeScenarioId === s.id
+                ? 'bg-cyan-500/10 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.2)]'
                 : 'bg-slate-900 border-slate-800 hover:bg-slate-800'
             }`}
           >
@@ -159,9 +198,10 @@ export const CPOAutoDemo = () => {
             </div>
           </button>
         ))}
+        </div>
 
-        <div className="shrink-0 lg:w-full lg:mt-4 p-4 bg-slate-900/50 border border-slate-800 rounded-2xl flex items-center justify-center">
-          <div className="flex gap-2">
+        <div className="mt-4 lg:mt-8 p-4 bg-slate-900/50 border border-slate-800 rounded-2xl">
+          <div className="flex gap-2 justify-center">
             <button 
               onClick={() => setIsPlaying(!isPlaying)}
               className="p-3 bg-slate-800 hover:bg-slate-700 rounded-full text-white transition-colors"
@@ -245,6 +285,7 @@ export const CPOAutoDemo = () => {
               </span>
             </h3>
             <div className="flex-1 min-h-[200px] h-[200px] lg:h-auto -ml-4">
+            <div className="flex-1 min-h-[200px] h-[200px] lg:h-auto -ml-4">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={rewardData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
@@ -265,7 +306,9 @@ export const CPOAutoDemo = () => {
         {/* Reasoning Panel */}
         <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl min-h-[250px] relative">
           <h3 className="text-sm text-slate-400 font-semibold mb-6 uppercase tracking-wider">Agent Reasoning & Actions</h3>
-          
+
+          <CPOStepErrorBoundary>
+          <div className="max-h-[500px] overflow-y-auto pr-1">
           <AnimatePresence mode="popLayout">
             {history.map((act, idx) => (
               <motion.div 
@@ -359,6 +402,8 @@ export const CPOAutoDemo = () => {
               Awaiting initialization...
             </div>
           )}
+          </div>
+          </CPOStepErrorBoundary>
         </div>
       </div>
     </div>

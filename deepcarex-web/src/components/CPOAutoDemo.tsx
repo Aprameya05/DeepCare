@@ -65,17 +65,55 @@ export const CPOAutoDemo = () => {
   const [activeScenarioId, setActiveScenarioId] = useState('uti');
   const [scenario, setScenario] = useState<PatientScenario | null>(null);
   const [state, setState] = useState<CPOState | null>(null);
+  const prevStateRef = useRef<CPOState | null>(null);
   
   const [history, setHistory] = useState<CPOActionResponse[]>([]);
   const [rewardData, setRewardData] = useState<{ step: number; reward: number }[]>([{ step: 0, reward: 0 }]);
   const [cumulativeReward, setCumulativeReward] = useState(0);
+  const [changedFields, setChangedFields] = useState<Set<string>>(new Set());
   
   const [isThinking, setIsThinking] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [episodeEnd, setEpisodeEnd] = useState<'success' | 'failed' | null>(null);
 
   const isPlayingRef = useRef(isPlaying);
   useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
+
+  const getChangedFields = (prev: CPOState, next: CPOState) => {
+    const changes = new Set<string>();
+
+    if (prev.vitals.bp !== next.vitals.bp) changes.add('vitals.bp');
+    if (prev.vitals.hr !== next.vitals.hr) changes.add('vitals.hr');
+    if (prev.vitals.temp !== next.vitals.temp) changes.add('vitals.temp');
+    if (prev.vitals.spo2 !== next.vitals.spo2) changes.add('vitals.spo2');
+
+    const labKeys = new Set([...Object.keys(prev.labResults), ...Object.keys(next.labResults)]);
+    labKeys.forEach((key) => {
+      if (prev.labResults[key] !== next.labResults[key]) {
+        changes.add(`labResults.${key}`);
+      }
+    });
+
+    const prevSymptoms = new Set(prev.symptoms);
+    const nextSymptoms = new Set(next.symptoms);
+    const symptomsChanged =
+      prev.symptoms.length !== next.symptoms.length ||
+      [...prevSymptoms].some((symptom) => !nextSymptoms.has(symptom)) ||
+      [...nextSymptoms].some((symptom) => !prevSymptoms.has(symptom));
+    if (symptomsChanged) {
+      changes.add('symptoms');
+      next.symptoms.forEach((symptom) => changes.add(`symptoms.${symptom}`));
+    }
+
+    return changes;
+  };
+
+  useEffect(() => {
+    if (changedFields.size === 0) return;
+    const timeoutId = window.setTimeout(() => setChangedFields(new Set()), 2000);
+    return () => window.clearTimeout(timeoutId);
+  }, [changedFields]);
 
   const activeScenarioData = SIDEBAR_SCENARIOS.find(s => s.id === activeScenarioId);
 
@@ -90,9 +128,12 @@ export const CPOAutoDemo = () => {
     setRewardData([{ step: 0, reward: 0 }]);
     setCumulativeReward(0);
     setEpisodeEnd(null);
+    setChangedFields(new Set());
     setIsThinking(false);
+    setHasStarted(false);
     setIsPlaying(true);
     setActiveScenarioId(scenarioId);
+    prevStateRef.current = initialState;
   };
 
   useEffect(() => {
@@ -104,7 +145,7 @@ export const CPOAutoDemo = () => {
 
     const runLoop = async () => {
       while (active) {
-        if (!isPlayingRef.current || episodeEnd || !state || !scenario) {
+        if (!hasStarted || !isPlayingRef.current || episodeEnd || !state || !scenario) {
           await sleep(500);
           continue;
         }
@@ -128,6 +169,11 @@ export const CPOAutoDemo = () => {
           outcome: state.currentAssessment
         });
 
+        const previousState = prevStateRef.current ?? state;
+        const nextChangedFields = getChangedFields(previousState, stepResult.nextState);
+        setChangedFields(nextChangedFields);
+        prevStateRef.current = stepResult.nextState;
+
         setState(stepResult.nextState);
         setCumulativeReward(prev => {
           const nr = Number((prev + stepResult.reward).toFixed(3));
@@ -145,7 +191,7 @@ export const CPOAutoDemo = () => {
 
     runLoop();
     return () => { active = false; };
-  }, [state, scenario, cumulativeReward, episodeEnd]);
+  }, [hasStarted, state, scenario, cumulativeReward, episodeEnd]);
 
   if (!state || !scenario) {
     return (
@@ -201,22 +247,34 @@ export const CPOAutoDemo = () => {
         </div>
 
         <div className="mt-4 lg:mt-8 p-4 bg-slate-900/50 border border-slate-800 rounded-2xl">
-          <div className="flex gap-2 justify-center">
-            <button 
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="p-3 bg-slate-800 hover:bg-slate-700 rounded-full text-white transition-colors"
-              title={isPlaying ? "Pause" : "Play"}
+          {!hasStarted ? (
+            <button
+              onClick={() => {
+                setHasStarted(true);
+                setIsPlaying(true);
+              }}
+              className="w-full rounded-xl border border-cyan-500/50 bg-cyan-500/15 px-4 py-3 text-sm font-semibold text-cyan-200 hover:bg-cyan-500/25 transition-colors"
             >
-              {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+              Watch Agent Think
             </button>
-            <button 
-              onClick={() => resetDemo(activeScenarioId)}
-              className="p-3 bg-slate-800 hover:bg-slate-700 rounded-full text-white transition-colors"
-              title="Restart"
-            >
-              <RotateCcw className="w-5 h-5" />
-            </button>
-          </div>
+          ) : (
+            <div className="flex gap-2 justify-center">
+              <button 
+                onClick={() => setIsPlaying(!isPlaying)}
+                className="p-3 bg-slate-800 hover:bg-slate-700 rounded-full text-white transition-colors"
+                title={isPlaying ? "Pause" : "Resume"}
+              >
+                {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+              </button>
+              <button 
+                onClick={() => resetDemo(activeScenarioId)}
+                className="p-3 bg-slate-800 hover:bg-slate-700 rounded-full text-white transition-colors"
+                title="Reset"
+              >
+                <RotateCcw className="w-5 h-5" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -228,10 +286,6 @@ export const CPOAutoDemo = () => {
           <motion.div 
             key={`state-card-${state.stepCount}`}
             className="bg-slate-900 border border-slate-800 p-6 rounded-2xl relative overflow-hidden"
-            animate={{ 
-              backgroundColor: state.stepCount > 0 ? ['#0f172a', 'rgba(234, 179, 8, 0.15)', '#0f172a'] : '#0f172a'
-            }}
-            transition={{ duration: 2, ease: "easeOut" }}
           >
             <h3 className="text-sm text-slate-400 font-semibold mb-4 uppercase tracking-wider">Current Patient State</h3>
             <div className="space-y-4">
@@ -242,7 +296,15 @@ export const CPOAutoDemo = () => {
                 </div>
                 <div>
                   <p className="text-xs text-slate-500">Vitals</p>
-                  <p className="font-mono text-cyan-300 text-sm">BP {state.vitals.bp} | HR {state.vitals.hr}</p>
+                  <p className="font-mono text-cyan-300 text-sm flex items-center gap-2">
+                    <span className={`rounded px-1.5 py-0.5 transition-colors duration-2000 ${changedFields.has('vitals.bp') ? 'bg-yellow-400/20' : ''}`}>
+                      BP {state.vitals.bp}
+                    </span>
+                    <span>|</span>
+                    <span className={`rounded px-1.5 py-0.5 transition-colors duration-2000 ${changedFields.has('vitals.hr') ? 'bg-yellow-400/20' : ''}`}>
+                      HR {state.vitals.hr}
+                    </span>
+                  </p>
                 </div>
               </div>
               
@@ -250,7 +312,14 @@ export const CPOAutoDemo = () => {
                 <p className="text-xs text-slate-500 mb-2">Symptoms & Signs</p>
                 <div className="flex flex-wrap gap-2">
                   {state.symptoms.map(sym => (
-                    <span key={sym} className="px-2 py-1 bg-red-500/10 text-red-300 text-xs rounded-full border border-red-500/20">
+                    <span
+                      key={sym}
+                      className={`px-2 py-1 text-xs rounded-full border transition-colors duration-2000 ${
+                        changedFields.has('symptoms') || changedFields.has(`symptoms.${sym}`)
+                          ? 'bg-yellow-400/20 border-yellow-400/40 text-yellow-200'
+                          : 'bg-red-500/10 border-red-500/20 text-red-300'
+                      }`}
+                    >
                       {sym}
                     </span>
                   ))}
@@ -265,7 +334,11 @@ export const CPOAutoDemo = () => {
                       key={k} 
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
-                      className="px-2 py-1 bg-blue-500/10 text-blue-300 text-xs rounded-full border border-blue-500/20"
+                      className={`px-2 py-1 text-xs rounded-full border transition-colors duration-2000 ${
+                        changedFields.has(`labResults.${k}`)
+                          ? 'bg-yellow-400/20 border-yellow-400/40 text-yellow-200'
+                          : 'bg-blue-500/10 border-blue-500/20 text-blue-300'
+                      }`}
                     >
                       {k}: {v}
                     </motion.span>
@@ -301,6 +374,7 @@ export const CPOAutoDemo = () => {
               </ResponsiveContainer>
             </div>
           </div>
+        </div>
         </div>
 
         {/* Reasoning Panel */}

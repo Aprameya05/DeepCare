@@ -134,13 +134,15 @@ export const CPOAutoDemo = () => {
   return (
     <div className="flex flex-col lg:flex-row gap-6">
       {/* Sidebar Switcher */}
-      <div className="lg:w-1/4 space-y-4">
-        <h3 className="text-slate-400 font-semibold tracking-wider text-sm uppercase mb-6">Select Scenario</h3>
+      <div className="lg:w-1/4 flex flex-row overflow-x-auto lg:flex-col gap-4 pb-2 lg:pb-0 snap-x hide-scrollbar scroll-smooth">
+        <div className="hidden lg:block w-full">
+          <h3 className="text-slate-400 font-semibold tracking-wider text-sm uppercase mb-2">Select Scenario</h3>
+        </div>
         {SIDEBAR_SCENARIOS.map(s => (
           <button
             key={s.id}
             onClick={() => resetDemo(s.id)}
-            className={`w-full text-left p-4 rounded-2xl transition-all border ${
+            className={`shrink-0 w-[280px] lg:w-full snap-start text-left p-4 rounded-2xl transition-all border ${
               activeScenarioId === s.id 
                 ? 'bg-cyan-500/10 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.2)]' 
                 : 'bg-slate-900 border-slate-800 hover:bg-slate-800'
@@ -158,8 +160,8 @@ export const CPOAutoDemo = () => {
           </button>
         ))}
 
-        <div className="mt-8 p-4 bg-slate-900/50 border border-slate-800 rounded-2xl">
-          <div className="flex gap-2 justify-center">
+        <div className="shrink-0 lg:w-full lg:mt-4 p-4 bg-slate-900/50 border border-slate-800 rounded-2xl flex items-center justify-center">
+          <div className="flex gap-2">
             <button 
               onClick={() => setIsPlaying(!isPlaying)}
               className="p-3 bg-slate-800 hover:bg-slate-700 rounded-full text-white transition-colors"
@@ -184,11 +186,12 @@ export const CPOAutoDemo = () => {
         {/* Top panels: Patient State & Reward Chart */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <motion.div 
+            key={`state-card-${state.stepCount}`}
             className="bg-slate-900 border border-slate-800 p-6 rounded-2xl relative overflow-hidden"
             animate={{ 
-              backgroundColor: state.stepCount > 0 ? ['#0f172a', '#1e293b', '#0f172a'] : '#0f172a'
+              backgroundColor: state.stepCount > 0 ? ['#0f172a', 'rgba(234, 179, 8, 0.15)', '#0f172a'] : '#0f172a'
             }}
-            transition={{ duration: 1 }}
+            transition={{ duration: 2, ease: "easeOut" }}
           >
             <h3 className="text-sm text-slate-400 font-semibold mb-4 uppercase tracking-wider">Current Patient State</h3>
             <div className="space-y-4">
@@ -241,7 +244,7 @@ export const CPOAutoDemo = () => {
                 {cumulativeReward >= 0 ? '+' : ''}{cumulativeReward.toFixed(3)}
               </span>
             </h3>
-            <div className="flex-1 min-h-[150px] -ml-4">
+            <div className="flex-1 min-h-[200px] h-[200px] lg:h-auto -ml-4">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={rewardData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />

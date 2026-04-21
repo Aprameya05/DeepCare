@@ -23,6 +23,7 @@ export const Navbar = () => {
               <Link to="/" className="text-gray-300 hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(0,212,255,0.8)] px-3 py-2 rounded-md text-sm font-medium transition-all">Home</Link>
               <Link to="/dashboard" className="text-gray-300 hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(0,212,255,0.8)] px-3 py-2 rounded-md text-sm font-medium transition-all">Diagnose</Link>
               <Link to="/cpo" className="text-gray-300 hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(0,212,255,0.8)] px-3 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-1"><Brain className="w-4 h-4 inline" /> Optimizer</Link>
+              <Link to="/cpo-demo" className="text-gray-300 hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(0,212,255,0.8)] px-3 py-2 rounded-md text-sm font-medium transition-all">CPO Demo</Link>
               <Link to="/about" className="text-gray-300 hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(0,212,255,0.8)] px-3 py-2 rounded-md text-sm font-medium transition-all">How it Works</Link>
             </div>
           </div>

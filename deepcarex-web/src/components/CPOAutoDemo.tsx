@@ -594,10 +594,6 @@ export const CPOAutoDemo = () => {
                     <p className="text-slate-500 uppercase tracking-wide text-xs">Steps Used</p>
                     <p className="font-mono text-lg text-slate-200">{state.stepCount} / {scenario.maxSteps}</p>
                   </div>
-                  <div>
-                    <p className="text-slate-500 uppercase tracking-wide text-xs">Budget Used</p>
-                    <p className="font-mono text-lg text-slate-200">${state.costAccrued} / ${scenario.budgetCeiling}</p>
-                  </div>
                 </div>
               </motion.div>
             )}

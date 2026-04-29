@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepCareX - AD Diagnosis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1>DeepCare<span class="accent">X</span></h1>
+                <p>Alzheimer's Disease Detection from Structural MRIs</p>
+            </div>
+        </header>
+
+        <main>
+            <div class="upload-card glass">
+                <div class="upload-area" id="upload-area">
+                    <input type="file" id="file-input" accept=".png,.jpg,.jpeg,.nii,.nii.gz" hidden>
+                    <div class="upload-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-upload-cloud"><polyline points="16 16 12 12 8 16"></polyline><line x1="12" y1="12" x2="12" y2="21"></line><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path><polyline points="16 16 12 12 8 16"></polyline></svg>
+                    </div>
+                    <h2>Drag & Drop your MRI Scan</h2>
+                    <p>or click to browse files (.png, .jpg, .nii)</p>
+                    <button class="browse-btn" onclick="document.getElementById('file-input').click()">Browse Files</button>
+                </div>
+
+                <div class="preview-area hidden" id="preview-area">
+                    <img id="image-preview" src="" alt="MRI Preview">
+                    <p id="file-name" class="file-name"></p>
+                    <div class="action-buttons">
+                        <button class="analyze-btn" id="analyze-btn">
+                            <span>Analyze Scan</span>
+                            <div class="loader hidden" id="btn-loader"></div>
+                        </button>
+                        <button class="reset-btn" id="reset-btn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-card glass hidden" id="results-card">
+                <h2>Diagnostic Report</h2>
+                
+                <div class="diagnosis-badge" id="diagnosis-badge">
+                    <span id="diagnosis-text">MCI</span>
+                </div>
+
+                <div class="confidence-section">
+                    <p>Model Confidence</p>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="confidence-bar"></div>
+                    </div>
+                    <span class="confidence-value" id="confidence-value">85%</span>
+                </div>
+
+                <div class="details-section">
+                    <div class="detail-item">
+                        <span class="label">Processing Time:</span>
+                        <span class="value" id="time-value">1.2s</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Model Info:</span>
+                        <span class="value">CNN Design for AD (ResNet X8 + Age)</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Based on the Deep Learning Model for Early Alzheimer's Disease Detection</p>
+        </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

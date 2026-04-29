@@ -656,3 +656,31 @@ Ensure you have Docker installed. You can download and install Docker from [here
    Open your web browser and go to http://localhost:5000
    ```
 
+
+---
+
+## 🧠 Brain Tumor Classification Pipeline (Recent Updates)
+
+A completely new, production-grade diagnostic pipeline has been added specifically for high-accuracy MRI classification using optimized Deep Learning algorithms.
+
+### What Has Been Added & Fixed:
+1. **Infrastructure & Setup**
+   * Migrated from isolated Jupyter Notebooks to highly reusable object-oriented `.py` scripts.
+   * Full hardware integration: Enabled PyTorch CUDA support.
+
+2. **Advanced Architecture (`model.py`)**
+   * Implemented **EfficientNetB3** for state-of-the-art diagnostic features.
+   * Leveraged a multi-layer classifier head with optimized dropout schedules (0.4 and 0.3) for clinical regularization.
+
+3. **Robust Data Pre-Processing & Pickling (`download_dataset.py`, `train.py`)**
+   * Addressed training vs testing class imbalance through calculated cross-entropy weights.
+   * Implemented heavy augmentation: Random resizing, rotations, grayscales, and color jitter to stop model overfitting.
+
+4. **Web Portal UI/UX (`app_web.py`, `static/index.html`)**
+   * Added visually impressive responsive portal permitting drag-and-drop file inference.
+
+### Running the new modules:
+- Install optimized modules: `pip install -r requirements.txt`
+- Execute Portal: `python -m uvicorn app_web:app --port 8000`
+
+

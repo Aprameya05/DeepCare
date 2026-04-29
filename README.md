@@ -659,28 +659,33 @@ Ensure you have Docker installed. You can download and install Docker from [here
 
 ---
 
-## 🧠 Brain Tumor Classification Pipeline (Recent Updates)
+## 🧠 Brain Tumor Classification Pipeline (Production Specifications)
 
-A completely new, production-grade diagnostic pipeline has been added specifically for high-accuracy MRI classification using optimized Deep Learning algorithms.
+A clinical-grade automated analysis module for MRI diagnostics.
 
-### What Has Been Added & Fixed:
-1. **Infrastructure & Setup**
-   * Migrated from isolated Jupyter Notebooks to highly reusable object-oriented `.py` scripts.
-   * Full hardware integration: Enabled PyTorch CUDA support.
+### 🔬 Technical Deep-Dive
 
-2. **Advanced Architecture (`model.py`)**
-   * Implemented **EfficientNetB3** for state-of-the-art diagnostic features.
-   * Leveraged a multi-layer classifier head with optimized dropout schedules (0.4 and 0.3) for clinical regularization.
+#### 1. Transfer Learning Architecture (`model.py`)
+- **Base Architecture**: EfficientNetB3 (Pretrained on ImageNet). 11.4M parameters.
+- **Modified Classification Head**:
+  ```
+  AdaptiveAvgPool2d(1) -> Dropout(0.4) -> Linear(1536, 512) -> ReLU -> BatchNorm1d -> Dropout(0.3) -> Linear(512, 4)
+  ```
+- **Fine-tuning Policy**: Unfreezes top convolutional blocks to align general filters to pathology indicators.
 
-3. **Robust Data Pre-Processing & Pickling (`download_dataset.py`, `train.py`)**
-   * Addressed training vs testing class imbalance through calculated cross-entropy weights.
-   * Implemented heavy augmentation: Random resizing, rotations, grayscales, and color jitter to stop model overfitting.
+#### 2. Advanced Training Regimen (`train.py`)
+- **Class Weighted Loss**:
+  $$\text{Weight}_c = \frac{N}{C \cdot n_c}$$
+- **Data Augmentation Mechanics**:
+  - `RandomResizedCrop` (0.7-1.0 scale), `RandomRotation` (20 deg), `RandomAffine`
+  - Gaussian Blurs, random grayscaling, dynamic erasing
 
-4. **Web Portal UI/UX (`app_web.py`, `static/index.html`)**
-   * Added visually impressive responsive portal permitting drag-and-drop file inference.
+#### 3. Setup Requirements
+Requires specific standard setups:
+```sh
+pip install torch torchvision numpy Pillow fastapi uvicorn
+```
+- Verify CUDA validation: `python -c "import torch; print(torch.cuda.is_available())"`
 
-### Running the new modules:
-- Install optimized modules: `pip install -r requirements.txt`
-- Execute Portal: `python -m uvicorn app_web:app --port 8000`
 
 

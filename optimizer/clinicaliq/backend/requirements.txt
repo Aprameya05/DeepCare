@@ -1,0 +1,4 @@
+qdrant-client
+transformers
+torch
+sentence-transformers

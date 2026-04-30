@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, type FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UploadCloud, Activity, Key, Loader2, ArrowLeft } from 'lucide-react';
-import { runImageDiagnosis, runParameterDiagnosis } from '../services/gemini';
+import { isApiInferenceConfigured, runImageDiagnosis, runParameterDiagnosis } from '../services/gemini';
 import type { DiagnosisResult } from '../services/gemini';
 
 const DISEASE_CONFIGS: Record<string, any> = {
@@ -91,10 +91,11 @@ export const DiagnosisForm = () => {
   const { diseaseId } = useParams();
   const navigate = useNavigate();
   const config = diseaseId ? DISEASE_CONFIGS[diseaseId] : null;
+  const useApiInference = isApiInferenceConfigured();
 
   const envKey = import.meta.env.VITE_GEMINI_API_KEY;
   const [apiKey, setApiKey] = useState(envKey || localStorage.getItem('gemini_api_key') || '');
-  const [showApiKeyPrompt, setShowApiKeyPrompt] = useState(!apiKey);
+  const [showApiKeyPrompt, setShowApiKeyPrompt] = useState(!useApiInference && !apiKey);
   
   // Image state
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -152,7 +153,7 @@ export const DiagnosisForm = () => {
     e.preventDefault();
     setError(null);
 
-    if (!apiKey) {
+    if (!useApiInference && !apiKey) {
       setShowApiKeyPrompt(true);
       return;
     }
@@ -184,7 +185,7 @@ export const DiagnosisForm = () => {
       
     } catch (err: any) {
       setError(err.message || 'Diagnosis failed.');
-      if (err.message && err.message.includes('API key')) {
+      if (!useApiInference && err.message && err.message.includes('API key')) {
         setShowApiKeyPrompt(true);
       }
     } finally {

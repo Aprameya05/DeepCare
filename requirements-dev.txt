@@ -1,0 +1,7 @@
+# PowerShell: py -m pip install -r requirements-dev.txt
+# Bash: python -m pip install -r requirements-dev.txt
+pytest
+pytest-asyncio
+httpx
+pytest-cov
+factory-boy

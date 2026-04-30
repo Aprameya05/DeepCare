@@ -10,7 +10,7 @@ RUN pip install numpy pandas scikit-learn matplotlib scipy seaborn xgboost jobli
 
 ENV TF_ENABLE_ONEDNN_OPTS=0
 
-WORKDIR /DeepCareX
+WORKDIR /NexioraDx
 
 ADD Website Website/
 
@@ -18,11 +18,11 @@ ADD Models Models/
 
 EXPOSE 5000
 
-WORKDIR /DeepCareX/Website/database/
+WORKDIR /NexioraDx/Website/database/
 
 RUN python3 database.py
 
-WORKDIR /DeepCareX/Website
+WORKDIR /NexioraDx/Website
 
 ENV  FLASK_APP main.py
 

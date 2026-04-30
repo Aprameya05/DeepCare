@@ -48,14 +48,14 @@ export const Contact = () => {
                          <div className="p-3 bg-cyan-400/10 rounded-lg"><Mail className="w-6 h-6 text-cyan-400" /></div>
                          <div>
                              <h4 className="font-bold text-white mb-1">Electronic Mail</h4>
-                             <p className="text-gray-400 text-sm leading-relaxed">systems@deepcarex.ai</p>
+                            <p className="text-gray-400 text-sm leading-relaxed">systems@nexioradx.ai</p>
                          </div>
                      </div>
                      <div className="glass-panel p-6 rounded-2xl flex items-start gap-4 neon-box border border-white/5 hover:border-cyan-400/30 transition-colors">
                          <div className="p-3 bg-cyan-400/10 rounded-lg"><Phone className="w-6 h-6 text-cyan-400" /></div>
                          <div>
                              <h4 className="font-bold text-white mb-1">Secure Line</h4>
-                             <p className="text-gray-400 text-sm leading-relaxed">+1 (800) DEEP-AI-9</p>
+                            <p className="text-gray-400 text-sm leading-relaxed">+1 (800) NEXI-ORA-9</p>
                          </div>
                      </div>
                 </motion.div>

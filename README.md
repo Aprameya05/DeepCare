@@ -302,12 +302,12 @@ Also, a sqlite3 database is added to store the information of the user.
 #### Run The Application:
 
 1. **Create the databases:**
-   - Navigate to: `NexioraDx/deepcarex-web`
+   - Navigate to: `NexioraDx/nexioradx-web`
    - Run: `database.py`
    - Syntax: `python3 database.py`
 
 2. **Run The Application:**
-   - Navigate to: `NexioraDx/deepcarex-web`
+   - Navigate to: `NexioraDx/nexioradx-web`
    - Run: `npm run dev`
    - Dev URL: `http://localhost:5173`
 
@@ -438,7 +438,7 @@ Additionally, the capacity to store symptom information and associated diagnoses
 ### 3) Data and model artifacts required
 
 - Pre-trained model files under `Models/`
-- Uploaded image input directory under your browser upload flow in `deepcarex-web`
+- Uploaded image input directory under your browser upload flow in `nexioradx-web`
 - Runtime browser storage used for API key/session-like data via `localStorage`
 
 ## **How It Works (End-to-End)** <a name="workflow"></a>
@@ -452,7 +452,7 @@ NexioraDx combines classical ML and deep learning models to handle both **tabula
 
 ### Step 2: Request handling in Flask
 
-- Routing and form processing are handled in the React app under `deepcarex-web/src`.
+- Routing and form processing are handled in the React app under `nexioradx-web/src`.
 - For image tasks:
   - The file is saved securely in `database/Uploaded`.
   - The image is resized and preprocessed.
@@ -516,8 +516,8 @@ Build and run on a local system:
 
 1. Clone the repository:
 ```sh
-git clone --recurse-submodules -j8 https://github.com/Aprameya05/DeepCare.git
-cd DeepCareX-main
+git clone --recurse-submodules -j8 https://github.com/Aprameya05/NexioraDx.git
+cd NexioraDx-main
 ```
 
 2. Create and activate a virtual environment (recommended):
@@ -536,7 +536,7 @@ pip install flask tensorflow numpy pandas scikit-learn matplotlib scipy seaborn 
 
 4. Run frontend website:
 ```sh
-cd deepcarex-web
+cd nexioradx-web
 npm install
 npm run dev
 ```
@@ -544,9 +544,9 @@ Open: `http://localhost:5173`
 
 ## **One-Click Netlify Deployment**
 
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Aprameya05/DeepCare)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Aprameya05/NexioraDx)
 
-This repo includes a root `netlify.toml` configured for the `deepcarex-web` app.
+This repo includes a root `netlify.toml` configured for the `nexioradx-web` app.
 
 After deploying, add this environment variable in Netlify site settings:
 
@@ -602,7 +602,7 @@ The project can develop into a complete and trustworthy health prediction and di
 
 You can view the project presentation here:
 
-[Project Presentation PDF](./DeepCareX.pdf)
+[Project Presentation PDF](./NexioraDx.pdf)
 
 ## **Docker Deployment** <a name=docker></a>
 
@@ -615,22 +615,22 @@ Ensure you have Docker installed. You can download and install Docker from [here
 1. Clone the repository:
 
    ```bash
-   git clone --recurse-submodules -j8 https://github.com/Aprameya05/DeepCare.git
+   git clone --recurse-submodules -j8 https://github.com/Aprameya05/NexioraDx.git
    ```
 2. Navigate to the project directory:
 
    ```bash
-   cd DeepCareX-main
+   cd NexioraDx-main
    ```
 3. Build the Docker image:
 
    ```bash
-   docker build -t deepcarex .
+   docker build -t nexioradx .
    ```
 4. Start the container: (Port 5000 on your host machine is mapped to port 5000 of the container as the application is running on port 5000 of the container)
 
    ```bash
-   docker run -it -d -p 5000:5000 deepcarex
+   docker run -it -d -p 5000:5000 nexioradx
    ```
 5. Access the application:
 
@@ -643,12 +643,12 @@ Ensure you have Docker installed. You can download and install Docker from [here
 1. Pull the docker builtin image
 
    ```bash
-   docker pull sumon2j/deepcarex:latest
+   docker pull sumon2j/nexioradx:latest
    ```
 2. Start the container: (Port 5000 on your host machine is mapped to port 5000 of the container as the application is running on port 5000 of the container)
 
    ```bash
-   docker run -it -d -p 5000:5000 deepcarex:latest
+   docker run -it -d -p 5000:5000 nexioradx:latest
    ```
 3. Access the application:
 

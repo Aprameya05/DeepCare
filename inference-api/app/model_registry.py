@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import joblib
-from tensorflow import keras
 
 
 @dataclass(frozen=True)
@@ -105,6 +104,8 @@ def _load_model(config: ModelConfig) -> object:
         )
 
     if config.model_type == "image":
+        from tensorflow import keras
+
         return keras.models.load_model(file_path)
     if config.model_type == "tabular":
         return joblib.load(file_path)

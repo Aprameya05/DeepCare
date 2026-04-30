@@ -54,8 +54,12 @@ export const Result = () => {
       result: DiagnosisResult, 
       diseaseName: string, 
       inputPreview: string | null,
-      originalParams: Record<string, any> | null 
+      originalParams: Record<string, any> | null,
+      pathwayResults?: Array<{ diseaseName: string; result: DiagnosisResult }>
   };
+  const pathwayResults = Array.isArray((location.state as any)?.pathwayResults)
+    ? (location.state as any).pathwayResults
+    : [];
 
   const isLowRisk = result.risk_level.toLowerCase() === 'low';
   const isHighRisk = result.risk_level.toLowerCase() === 'high';
@@ -135,6 +139,27 @@ export const Result = () => {
 
         {/* Right Column: Details & Recommendations */}
         <div className="lg:col-span-2 space-y-6">
+            {pathwayResults.length > 1 && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                className="glass-panel p-6 rounded-2xl border border-cyan-400/20"
+              >
+                <h3 className="text-xl font-bold mb-4">Integrated Pathway Summary</h3>
+                <div className="space-y-2">
+                  {pathwayResults.map((entry: { diseaseName: string; result: DiagnosisResult }, idx: number) => (
+                    <div key={`${entry.diseaseName}-${idx}`} className="flex items-center justify-between text-sm border-b border-white/10 pb-2">
+                      <span className="text-gray-300">{idx + 1}. {entry.diseaseName}</span>
+                      <span className="font-semibold text-cyan-300">
+                        {entry.result.diagnosis} ({entry.result.confidence}%)
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
             <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

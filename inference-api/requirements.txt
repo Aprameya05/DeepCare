@@ -1,8 +1,13 @@
 fastapi
 uvicorn[standard]
-tensorflow==2.9.0
+tensorflow==2.16.2
 numpy
 Pillow
 python-multipart
 joblib
 scikit-learn
+torch
+torchvision
+pandas
+qdrant-client
+transformers

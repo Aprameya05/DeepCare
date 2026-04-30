@@ -67,16 +67,15 @@ type CPOCriticResponse = {
 };
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").trim();
+const ENABLE_GEMINI_FALLBACK =
+  String(import.meta.env.VITE_ENABLE_GEMINI_FALLBACK || "false").toLowerCase() === "true";
 
 const DISEASE_NAME_TO_ID: Record<string, string> = {
   "Alzheimer's Disease": "alzheimers",
   "Brain Tumor": "brain_tumor",
   "COVID-19": "covid",
-  "Pneumonia": "pneumonia",
-  "Kidney Disease": "kidney",
   "Breast Cancer": "breast_cancer",
   "Diabetes": "diabetes",
-  "Hepatitis C": "hepatitis",
 };
 
 export const isApiInferenceConfigured = (): boolean => Boolean(API_BASE_URL);
@@ -193,7 +192,12 @@ export const runImageDiagnosis = async (
     try {
       return await requestApiImageDiagnosis(diseaseId, imageBase64, mimeType, classes);
     } catch (error: any) {
-      console.warn("Inference API image request failed. Falling back to Gemini.", error?.message);
+      console.warn("Inference API image request failed.", error?.message);
+      if (!ENABLE_GEMINI_FALLBACK) {
+        throw new Error(
+          "Inference API image request failed. Set VITE_ENABLE_GEMINI_FALLBACK=true to allow Gemini fallback."
+        );
+      }
     }
   }
 
@@ -249,7 +253,12 @@ export const runParameterDiagnosis = async (
     try {
       return await requestApiParameterDiagnosis(diseaseId, parameters, classes);
     } catch (error: any) {
-      console.warn("Inference API parameter request failed. Falling back to Gemini.", error?.message);
+      console.warn("Inference API parameter request failed.", error?.message);
+      if (!ENABLE_GEMINI_FALLBACK) {
+        throw new Error(
+          "Inference API parameter request failed. Set VITE_ENABLE_GEMINI_FALLBACK=true to allow Gemini fallback."
+        );
+      }
     }
   }
 

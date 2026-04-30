@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 RiskLevel = Literal["Low", "Medium", "High"]
@@ -9,9 +9,7 @@ RiskLevel = Literal["Low", "Medium", "High"]
 class ParameterPredictRequest(BaseModel):
     disease_id: str = Field(..., alias="diseaseId")
     parameters: Dict[str, Any]
-
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class DiagnosisResponse(BaseModel):
@@ -21,6 +19,8 @@ class DiagnosisResponse(BaseModel):
     findings: Optional[List[str]] = None
     risk_factors: Optional[List[str]] = None
     recommendations: List[str]
+    source_model: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
 
 
 class ModelStatusItem(BaseModel):

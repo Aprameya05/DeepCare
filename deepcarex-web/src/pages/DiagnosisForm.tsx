@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, type FormEvent } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UploadCloud, Activity, Key, Loader2, ArrowLeft } from 'lucide-react';
 import { isApiInferenceConfigured, runImageDiagnosis, runParameterDiagnosis } from '../services/gemini';
@@ -23,18 +23,6 @@ const DISEASE_CONFIGS: Record<string, any> = {
     type: 'image',
     description: 'Upload a Chest X-Ray or CT Scan for COVID-19 detection.',
     classes: ['COVID Positive', 'COVID Negative', 'Normal'],
-  },
-  'pneumonia': {
-    name: "Pneumonia",
-    type: 'image',
-    description: 'Upload a Chest X-Ray for pneumonia detection.',
-    classes: ['Pneumonia Detected', 'Normal'],
-  },
-  'kidney': {
-    name: "Kidney Disease",
-    type: 'image',
-    description: 'Upload a CT Kidney Scan.',
-    classes: ['Normal', 'Cyst', 'Tumor', 'Stone'],
   },
   'breast_cancer': {
     name: "Breast Cancer",
@@ -64,34 +52,23 @@ const DISEASE_CONFIGS: Record<string, any> = {
       { id: 'hba1c', label: 'HbA1c Level', type: 'range', min: 3.5, max: 9.0, step: 0.1, default: 5.5 },
       { id: 'glucose', label: 'Blood Glucose Level', type: 'range', min: 80, max: 300, step: 1, default: 100 },
     ]
-  },
-  'hepatitis': {
-    name: "Hepatitis C",
-    type: 'parameters',
-    description: 'Enter patient blood biomarker parameters.',
-    classes: ['Blood Donor (Normal)', 'Hepatitis', 'Fibrosis', 'Cirrhosis'],
-    fields: [
-      { id: 'age', label: 'Age', type: 'range', min: 1, max: 100, step: 1, default: 40 },
-      { id: 'sex', label: 'Sex', type: 'select', options: ['m', 'f'], default: 'm' },
-      { id: 'alb', label: 'ALB (Albumin)', type: 'number', min: 0, default: 40 },
-      { id: 'alp', label: 'ALP (Alkaline Phosphatase)', type: 'number', min: 0, default: 70 },
-      { id: 'alt', label: 'ALT', type: 'number', min: 0, default: 20 },
-      { id: 'ast', label: 'AST', type: 'number', min: 0, default: 25 },
-      { id: 'bil', label: 'BIL (Bilirubin)', type: 'number', min: 0, default: 10 },
-      { id: 'che', label: 'CHE', type: 'number', min: 0, default: 8 },
-      { id: 'chol', label: 'CHOL (Cholesterol)', type: 'number', min: 0, default: 5 },
-      { id: 'crea', label: 'CREA (Creatinine)', type: 'number', min: 0, default: 70 },
-      { id: 'ggt', label: 'GGT', type: 'number', min: 0, default: 30 },
-      { id: 'prot', label: 'PROT (Protein)', type: 'number', min: 0, default: 70 },
-    ]
   }
 };
 
 export const DiagnosisForm = () => {
   const { diseaseId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const config = diseaseId ? DISEASE_CONFIGS[diseaseId] : null;
   const useApiInference = isApiInferenceConfigured();
+  const pathwayRaw = searchParams.get('pathway') || '';
+  const pathwaySequence = pathwayRaw
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const pathwayStep = Number(searchParams.get('step') || '1');
+  const inPathway = pathwaySequence.length > 0;
 
   const envKey = import.meta.env.VITE_GEMINI_API_KEY;
   const [apiKey, setApiKey] = useState(envKey || localStorage.getItem('gemini_api_key') || '');
@@ -180,8 +157,41 @@ export const DiagnosisForm = () => {
         result = await runParameterDiagnosis(apiKey, config.name, config.classes, params);
       }
       
-      // Navigate to results page with state
-      navigate('/result', { state: { result, diseaseName:  config.name, inputPreview: imagePreview || null, originalParams: config.type === 'parameters' ? params : null } });
+      const resultEntry = {
+        diseaseId: diseaseId || '',
+        diseaseName: config.name,
+        result,
+        inputPreview: imagePreview || null,
+        originalParams: config.type === 'parameters' ? params : null,
+      };
+      const existingPathwayResults = Array.isArray((location.state as any)?.pathwayResults)
+        ? (location.state as any).pathwayResults
+        : [];
+      const updatedPathwayResults = [...existingPathwayResults, resultEntry];
+
+      if (inPathway && pathwayStep < pathwaySequence.length) {
+        const nextDiseaseId = pathwaySequence[pathwayStep];
+        navigate(
+          `/diagnosis/${nextDiseaseId}?pathway=${encodeURIComponent(pathwayRaw)}&step=${pathwayStep + 1}`,
+          { state: { pathwayResults: updatedPathwayResults } }
+        );
+      } else if (inPathway) {
+        navigate('/result', {
+          state: {
+            ...resultEntry,
+            pathwayResults: updatedPathwayResults,
+          },
+        });
+      } else {
+        navigate('/result', {
+          state: {
+            result,
+            diseaseName: config.name,
+            inputPreview: imagePreview || null,
+            originalParams: config.type === 'parameters' ? params : null,
+          },
+        });
+      }
       
     } catch (err: any) {
       setError(err.message || 'Diagnosis failed.');

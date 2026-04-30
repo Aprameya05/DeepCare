@@ -23,6 +23,8 @@
     "autoprefixer": "^10.5.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
+    "lightningcss": "^1.32.0",
+    "lightningcss-win32-x64-msvc": "^1.32.0",
     "lucide-react": "^1.8.0",
     "postcss": "^8.5.10",
     "react": "^19.2.5",

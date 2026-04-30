@@ -86,3 +86,6 @@ curl -X POST "http://127.0.0.1:8000/predict" \
 
 ## Reliability
 The system implements strict Pydantic validation enforcing that physical metrics must not be negative. Explainability via SHAP adds an interpretable layer crucial for clinical usage.
+
+### Note on Environment
+During productionization, we observed that some builds of Python 3.13 on Windows might have issues importing `scikit-learn` or `xgboost` due to OpenMP/MKL conflicts. If you encounter hangs during training, it is recommended to use Python 3.11 or 3.12, or set the environment variable `OMP_NUM_THREADS=1` before running the scripts.

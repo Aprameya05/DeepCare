@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import contextlib
 import sqlite3
 from pathlib import Path
 
-BACKEND_DIR = Path(__file__).resolve().parent
+BACKEND_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_DB_PATH = BACKEND_DIR / "clinicaliq.db"
 
 
@@ -79,7 +80,6 @@ def ensure_core_tables(conn: sqlite3.Connection) -> None:
         )
         """
     )
-    # Optional helper tables used by local validation and by service fallback logic.
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS disease_rankings (
@@ -88,7 +88,8 @@ def ensure_core_tables(conn: sqlite3.Connection) -> None:
             disease_name TEXT NOT NULL,
             confidence REAL NOT NULL,
             supporting_symptoms TEXT NOT NULL DEFAULT '',
-            clinical_basis TEXT NOT NULL DEFAULT ''
+            clinical_basis TEXT NOT NULL DEFAULT '',
+            confirmed_by_doctor INTEGER NOT NULL DEFAULT 0
         )
         """
     )
@@ -96,8 +97,62 @@ def ensure_core_tables(conn: sqlite3.Connection) -> None:
         """
         CREATE TABLE IF NOT EXISTS visits (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            symptoms TEXT NOT NULL DEFAULT ''
+            symptoms TEXT NOT NULL DEFAULT '',
+            clinical_summary TEXT NOT NULL DEFAULT ''
         )
         """
     )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS doctor_overrides (
+            override_id TEXT PRIMARY KEY,
+            visit_id INTEGER NOT NULL,
+            doctor_id TEXT NOT NULL,
+            confirmed_disease TEXT NOT NULL,
+            confirmed_tests TEXT NOT NULL DEFAULT '[]',
+            notes TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS ai_accuracy_tracking (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            visit_id INTEGER NOT NULL UNIQUE,
+            override_id TEXT NOT NULL,
+            top1_match REAL NOT NULL,
+            top3_match REAL NOT NULL,
+            test_overlap REAL NOT NULL,
+            severity_delta REAL NOT NULL,
+            burden_delta REAL NOT NULL,
+            composite_score REAL NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS feedback_queue (
+            queue_id TEXT PRIMARY KEY,
+            visit_id INTEGER NOT NULL,
+            override_id TEXT NOT NULL,
+            feature_vector TEXT NOT NULL,
+            label_disease TEXT NOT NULL,
+            label_tests TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            consumed INTEGER NOT NULL DEFAULT 0
+        )
+        """
+    )
+    with contextlib.suppress(sqlite3.OperationalError):
+        conn.execute(
+            "ALTER TABLE recommended_tests ADD COLUMN doctor_confirmed INTEGER NOT NULL DEFAULT 0"
+        )
+    with contextlib.suppress(sqlite3.OperationalError):
+        conn.execute("ALTER TABLE visits ADD COLUMN clinical_summary TEXT NOT NULL DEFAULT ''")
+    with contextlib.suppress(sqlite3.OperationalError):
+        conn.execute(
+            "ALTER TABLE disease_rankings ADD COLUMN confirmed_by_doctor INTEGER NOT NULL DEFAULT 0"
+        )
     conn.commit()

@@ -21,7 +21,7 @@ from backend.services.test_recommendation_service import generate_test_recommend
 from backend.services.test_ordering_service import optimize_test_ordering
 from backend.services.pdf_report_service import generate_pdf_report
 
-app = FastAPI(title="ClinicalIQ Recommendation API", version="0.1.0")
+app = FastAPI(title="NexioraDx Recommendation API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,

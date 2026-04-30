@@ -19,7 +19,7 @@ from .preprocessing import (
 )
 from .schemas import DiagnosisResponse, ModelStatusResponse, ParameterPredictRequest
 
-app = FastAPI(title="DeepCare Inference API", version="1.0.0")
+app = FastAPI(title="NexioraDx Inference API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,

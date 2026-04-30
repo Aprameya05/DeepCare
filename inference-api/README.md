@@ -1,4 +1,4 @@
-# DeepCare Inference API
+# NexioraDx Inference API
 
 ## Run locally
 

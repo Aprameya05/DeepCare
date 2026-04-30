@@ -8,5 +8,5 @@
 **/.playwright
 backend/clinicaliq.db
 clinicaliq/data/reports/*.pdf
-DeepCareX.pdf
-DeepCareX.pptx
+NexioraDx.pdf
+NexioraDx.pptx

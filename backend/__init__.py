@@ -1,1 +1,1 @@
-"""ClinicalIQ backend package."""
+"""NexioraDx backend package."""

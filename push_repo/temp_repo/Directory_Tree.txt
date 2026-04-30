@@ -1,4 +1,4 @@
-DeepCareX - (ROOT)
+NexioraDx - (ROOT)
 1. Datasets - Consist 8 datasets of diseases
 2. Model_Code - Python codes for model generation of 8 disease
 3. Models - Saved deep learning and machine learning model in .hdf,.h5 and .pkl format

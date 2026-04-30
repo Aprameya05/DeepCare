@@ -12,7 +12,7 @@ from reportlab.platypus import SimpleDocTemplate
 def _footer(canvas: Canvas, doc) -> None:
     canvas.saveState()
     canvas.setFont("Helvetica", 8)
-    canvas.drawString(15 * mm, 10 * mm, f"ClinicalIQ Report - Page {doc.page}")
+    canvas.drawString(15 * mm, 10 * mm, f"NexioraDx Report - Page {doc.page}")
     canvas.restoreState()
 
 

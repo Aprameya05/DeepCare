@@ -1,1 +1,1 @@
-"""ClinicalIQ backend test package."""
+"""NexioraDx backend test package."""

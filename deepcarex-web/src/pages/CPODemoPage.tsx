@@ -75,7 +75,7 @@ export const CPODemoPage = () => {
       )}
 
       <footer className="py-6 border-t border-slate-800/50 bg-slate-950 text-center text-sm text-slate-500 z-20 relative font-medium">
-        Grounded in MIMIC-IV statistical priors | PPO reward structure | Part of DeepCareX Research Platform
+        Grounded in MIMIC-IV statistical priors | PPO reward structure | Part of NexioraDx Research Platform
       </footer>
     </div>
   );

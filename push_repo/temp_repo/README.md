@@ -1,4 +1,4 @@
-<h1 align="center">DeepCareX: AI-based Healthcare System</h1>
+<h1 align="center">NexioraDx: AI-based Healthcare System</h1>
 
 <h3 align="center">Sumon Singh</h3>
 <h3 align="center">2023</h3>
@@ -7,7 +7,7 @@
 
 ## Live Demo
 You can explore the live version of this project here:  
-[DeepCareX](https://deepcarex-latest.onrender.com/)
+[NexioraDx](https://nexioradx-latest.onrender.com/)
 
 ---
 
@@ -354,7 +354,7 @@ Also, a sqlite3 database is added to store the information of the user.
 
 ### **D. Directory Tree**
 
-**DeepCareX - (ROOT)**
+**NexioraDx - (ROOT)**
 
 1. **Datasets** -- Consists of 8 datasets of diseases.
 2. **Model_Code** -- Python codes for model generation of 8 diseases.
@@ -379,12 +379,12 @@ Also, a sqlite3 database is added to store the information of the user.
 #### Run The Application:
 
 1. **Create the databases:**
-   - Navigate to: `DeepCareX/Website/database`
+   - Navigate to: `NexioraDx/Website/database`
    - Run: `database.py`
    - Syntax: `python3 database.py`
 
 2. **Run The Application:**
-   - Navigate to: `DeepCareX/Website`
+   - Navigate to: `NexioraDx/Website`
    - Run: `main.py`
    - Syntax: `python3 main.py`
 
@@ -634,20 +634,20 @@ The project can develop into a complete and trustworthy health prediction and di
 
 You can view the project presentation here:
 
-[Project Presentation PDF](./DeepCareX.pdf)
+[Project Presentation PDF](./NexioraDx.pdf)
 
 ## **Installation** <a name="install"></a>
 
 Build the project from source: (On a local System)
 
-1. Clone the DeepCareX.git repository:
+1. Clone the NexioraDx.git repository:
 ```sh
-❯ git clone --recurse-submodules -j8 https://github.com/sumony2j/DeepCareX.git
+❯ git clone --recurse-submodules -j8 https://github.com/sumony2j/NexioraDx.git
 ```
 
 2. Navigate to the project directory:
 ```sh
-❯ cd DeepCareX.git
+❯ cd NexioraDx.git
 ```
 
 3. Install the required dependencies: (**Follow for more details : requirment.txt**)
@@ -670,22 +670,22 @@ Ensure you have Docker installed. You can download and install Docker from [here
 1. Clone the repository:
 
    ```bash
-   git clone --recurse-submodules -j8 https://github.com/sumony2j/DeepCareX.git
+   git clone --recurse-submodules -j8 https://github.com/sumony2j/NexioraDx.git
    ```
 2. Navigate to the project directory:
 
    ```bash
-   cd DeepCareX
+   cd NexioraDx
    ```
 3. Build the Docker image:
 
    ```bash
-   docker build -t deepcarex .
+   docker build -t nexioradx .
    ```
 4. Start the container: (Port 5000 on your host machine is mapped to port 5000 of the container as the application is running on port 5000 of the container)
 
    ```bash
-   docker run -it -d -p 5000:5000 deepcarex
+   docker run -it -d -p 5000:5000 nexioradx
    ```
 5. Access the application:
 
@@ -698,12 +698,12 @@ Ensure you have Docker installed. You can download and install Docker from [here
 1. Pull the docker builtin image
 
    ```bash
-   docker pull sumon2j/deepcarex:latest
+   docker pull sumon2j/nexioradx:latest
    ```
 2. Start the container: (Port 5000 on your host machine is mapped to port 5000 of the container as the application is running on port 5000 of the container)
 
    ```bash
-   docker run -it -d -p 5000:5000 deepcarex:latest
+   docker run -it -d -p 5000:5000 nexioradx:latest
    ```
 3. Access the application:
 
@@ -715,9 +715,9 @@ Ensure you have Docker installed. You can download and install Docker from [here
 
 Contributions are welcome! Here are several ways you can contribute:
 
-- **[Report Issues](https://github.com/sumony2j/DeepCareX.git/issues)**: Submit bugs found or log feature requests for the `DeepCareX.git` project.
-- **[Submit Pull Requests](https://github.com/sumony2j/DeepCareX.git/blob/main/CONTRIBUTING.md)**: Review open PRs, and submit your own PRs.
-- **[Join the Discussions](https://github.com/sumony2j/DeepCareX.git/discussions)**: Share your insights, provide feedback, or ask questions.
+- **[Report Issues](https://github.com/sumony2j/NexioraDx.git/issues)**: Submit bugs found or log feature requests for the `NexioraDx.git` project.
+- **[Submit Pull Requests](https://github.com/sumony2j/NexioraDx.git/blob/main/CONTRIBUTING.md)**: Review open PRs, and submit your own PRs.
+- **[Join the Discussions](https://github.com/sumony2j/NexioraDx.git/discussions)**: Share your insights, provide feedback, or ask questions.
 
 <details closed>
    
@@ -726,7 +726,7 @@ Contributions are welcome! Here are several ways you can contribute:
 1. **Fork the Repository**: Start by forking the project repository to your github account.
 2. **Clone Locally**: Clone the forked repository to your local machine using a git client.
    ```sh
-   git clone https://github.com/sumony2j/DeepCareX.git
+   git clone https://github.com/sumony2j/NexioraDx.git
    ```
 3. **Create a New Branch**: Always work on a new branch, giving it a descriptive name.
    ```sh

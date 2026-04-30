@@ -16,7 +16,7 @@ export default function Sidebar() {
       <div className="h-16 flex items-center px-6 border-b">
         <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
           <ActivitySquare className="text-blue-600 w-6 h-6" />
-          ClinicalIQ
+          NexioraDx
         </h1>
       </div>
       <nav className="flex-1 p-4 space-y-1">

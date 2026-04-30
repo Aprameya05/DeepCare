@@ -59,9 +59,11 @@ export default function PatientDetailPage() {
         <Card className="col-span-1 md:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Visit History</CardTitle>
-            <Button variant="outline" size="sm">
-              <Plus className="mr-2 h-4 w-4" /> New Visit
-            </Button>
+            <Link to={`/visits/new?patientId=${patient.id}&gender=${patient.gender}`}>
+              <Button variant="outline" size="sm">
+                <Plus className="mr-2 h-4 w-4" /> New Visit
+              </Button>
+            </Link>
           </CardHeader>
           <CardContent>
             {visitsLoading ? (
@@ -69,7 +71,9 @@ export default function PatientDetailPage() {
             ) : visits?.length === 0 ? (
               <div className="text-center py-8 text-slate-500">
                 <p>No previous visits</p>
-                <Button variant="link" className="mt-2">Create first visit</Button>
+                <Link to={`/visits/new?patientId=${patient.id}&gender=${patient.gender}`}>
+                  <Button variant="link" className="mt-2">Create first visit</Button>
+                </Link>
               </div>
             ) : (
               <div className="space-y-4">

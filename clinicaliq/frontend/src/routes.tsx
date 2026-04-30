@@ -1,9 +1,12 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import AppShell from './components/layout/AppShell';
-import DashboardPage from './pages/DashboardPage';
+import AccuracyDashboardPage from './pages/AccuracyDashboardPage';
 import PatientListPage from './pages/PatientListPage';
 import NewPatientPage from './pages/NewPatientPage';
 import PatientDetailPage from './pages/PatientDetailPage';
+import NewVisitPage from './pages/visits/NewVisitPage';
+import VisitDetailPage from './pages/VisitDetailPage';
+import ReportPage from './pages/ReportPage';
 
 export const router = createBrowserRouter([
   {
@@ -16,7 +19,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'dashboard',
-        element: <DashboardPage />,
+        element: <AccuracyDashboardPage />,
       },
       {
         path: 'patients',
@@ -31,8 +34,20 @@ export const router = createBrowserRouter([
         element: <PatientDetailPage />,
       },
       {
+        path: 'visits/new',
+        element: <NewVisitPage />,
+      },
+      {
+        path: 'visits/:id',
+        element: <VisitDetailPage />,
+      },
+      {
+        path: 'visits/:id/report',
+        element: <ReportPage />,
+      },
+      {
         path: 'accuracy',
-        element: <div className="p-8">Accuracy page - Coming in next stage</div>,
+        element: <AccuracyDashboardPage />,
       }
     ],
   },

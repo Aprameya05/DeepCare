@@ -66,6 +66,98 @@ type CPOCriticResponse = {
   selection_reason: string;
 };
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").trim();
+
+const DISEASE_NAME_TO_ID: Record<string, string> = {
+  "Alzheimer's Disease": "alzheimers",
+  "Brain Tumor": "brain_tumor",
+  "COVID-19": "covid",
+  "Pneumonia": "pneumonia",
+  "Kidney Disease": "kidney",
+  "Breast Cancer": "breast_cancer",
+  "Diabetes": "diabetes",
+  "Hepatitis C": "hepatitis",
+};
+
+export const isApiInferenceConfigured = (): boolean => Boolean(API_BASE_URL);
+
+function toDiseaseId(diseaseName: string): string {
+  return DISEASE_NAME_TO_ID[diseaseName] || diseaseName.toLowerCase().replace(/\s+/g, "_");
+}
+
+function normalizeDiagnosisResponse(raw: any, fallbackClasses: string[]): DiagnosisResult {
+  const diagnosis = String(raw?.diagnosis || fallbackClasses[0] || "Unknown");
+  const confidence = Number.isFinite(raw?.confidence) ? Number(raw.confidence) : 0;
+  const risk_level = ["Low", "Medium", "High"].includes(raw?.risk_level)
+    ? raw.risk_level
+    : confidence >= 85
+      ? "High"
+      : confidence >= 60
+        ? "Medium"
+        : "Low";
+
+  return {
+    diagnosis,
+    confidence,
+    risk_level,
+    findings: raw?.findings,
+    risk_factors: raw?.risk_factors,
+    recommendations: Array.isArray(raw?.recommendations)
+      ? raw.recommendations
+      : ["Follow up with a qualified healthcare professional."],
+  };
+}
+
+async function requestApiImageDiagnosis(
+  diseaseId: string,
+  imageBase64: string,
+  mimeType: string,
+  classes: string[]
+): Promise<DiagnosisResult> {
+  const binary = atob(imageBase64);
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  const blob = new Blob([bytes], { type: mimeType || "image/jpeg" });
+  const file = new File([blob], "scan-image", { type: mimeType || "image/jpeg" });
+
+  const formData = new FormData();
+  formData.append("diseaseId", diseaseId);
+  formData.append("image", file);
+
+  const response = await fetch(`${API_BASE_URL}/predict/image`, {
+    method: "POST",
+    body: formData,
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload?.detail || "Image inference API request failed.");
+  }
+  return normalizeDiagnosisResponse(payload, classes);
+}
+
+async function requestApiParameterDiagnosis(
+  diseaseId: string,
+  parameters: Record<string, any>,
+  classes: string[]
+): Promise<DiagnosisResult> {
+  const response = await fetch(`${API_BASE_URL}/predict/params`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      diseaseId,
+      parameters,
+    }),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload?.detail || "Parameter inference API request failed.");
+  }
+  return normalizeDiagnosisResponse(payload, classes);
+}
+
 const getMockResponse = (diseaseName: string, classes: string[], isHighRisk: boolean = true): DiagnosisResult => {
     return {
         diagnosis: isHighRisk ? classes[0] : classes[classes.length - 1],
@@ -96,6 +188,15 @@ export const runImageDiagnosis = async (
   imageBase64: string,
   mimeType: string
 ): Promise<DiagnosisResult> => {
+  const diseaseId = toDiseaseId(diseaseName);
+  if (API_BASE_URL) {
+    try {
+      return await requestApiImageDiagnosis(diseaseId, imageBase64, mimeType, classes);
+    } catch (error: any) {
+      console.warn("Inference API image request failed. Falling back to Gemini.", error?.message);
+    }
+  }
+
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
@@ -143,6 +244,15 @@ export const runParameterDiagnosis = async (
   classes: string[],
   parameters: Record<string, any>
 ): Promise<DiagnosisResult> => {
+  const diseaseId = toDiseaseId(diseaseName);
+  if (API_BASE_URL) {
+    try {
+      return await requestApiParameterDiagnosis(diseaseId, parameters, classes);
+    } catch (error: any) {
+      console.warn("Inference API parameter request failed. Falling back to Gemini.", error?.message);
+    }
+  }
+
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 

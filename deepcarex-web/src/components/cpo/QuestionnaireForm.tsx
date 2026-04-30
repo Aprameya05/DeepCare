@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import type { FormEvent } from "react";
 import { Activity } from "lucide-react";
 import type { QuestionnaireAnswers } from "../../types/cpoTypes";
 
@@ -13,25 +13,47 @@ export interface Question {
 
 interface QuestionnaireFormProps {
   questions: Question[];
-  onSubmit: (answers: QuestionnaireAnswers) => void;
+  answers: QuestionnaireAnswers;
+  onAnswersChange: (answers: QuestionnaireAnswers) => void;
+  onSubmit: () => void;
 }
 
-export const QuestionnaireForm = ({ questions, onSubmit }: QuestionnaireFormProps) => {
-  const [answers, setAnswers] = useState<QuestionnaireAnswers>({});
+export const QuestionnaireForm = ({
+  questions,
+  answers,
+  onAnswersChange,
+  onSubmit,
+}: QuestionnaireFormProps) => {
+  const updateAnswer = (key: string, value: string | number | boolean | string[] | undefined) => {
+    const nextAnswers = { ...answers };
+
+    if (value === undefined) {
+      delete nextAnswers[key];
+    } else if (Array.isArray(value) && value.length === 0) {
+      delete nextAnswers[key];
+    } else if (typeof value === "string" && value.trim() === "") {
+      delete nextAnswers[key];
+    } else {
+      nextAnswers[key] = value;
+    }
+
+    onAnswersChange(nextAnswers);
+  };
 
   const handleChange = (key: string, value: string | number | boolean | string[]) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    updateAnswer(key, value);
   };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    onSubmit(answers);
+    onSubmit();
   };
 
-  const answeredCount = Object.keys(answers).length;
+  const answeredCount = Object.values(answers).filter((value) => {
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === "string") return value.trim() !== "";
+    return value !== undefined;
+  }).length;
   const isSubmitDisabled = answeredCount < 5;
 
   return (
@@ -105,7 +127,7 @@ export const QuestionnaireForm = ({ questions, onSubmit }: QuestionnaireFormProp
                         } else {
                           newValues = [...currentValues, opt];
                         }
-                        handleChange(q.feature_key, newValues);
+                        updateAnswer(q.feature_key, newValues.length > 0 ? newValues : undefined);
                       }}
                       className={`py-2 px-4 rounded-lg border capitalize transition-colors text-sm ${
                         isSelected
@@ -147,9 +169,7 @@ export const QuestionnaireForm = ({ questions, onSubmit }: QuestionnaireFormProp
                   onChange={(e) => {
                     const val = e.target.value;
                     if (val === "") {
-                      const newAnswers = { ...answers };
-                      delete newAnswers[q.feature_key];
-                      setAnswers(newAnswers);
+                      updateAnswer(q.feature_key, undefined);
                     } else {
                       handleChange(q.feature_key, Number(val));
                     }

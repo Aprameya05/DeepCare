@@ -4,12 +4,12 @@ import type { ClinicalCase, QuestionnaireAnswers, RecommendationResult } from ".
  * Match a single answer value against a match expression.
  *
  * Supported patterns:
- *   "includes:X"   — array contains X  (multi_select fields)
- *   ">=N" / "<=N"  — numeric comparison
- *   "N-M"          — inclusive numeric range
- *   "a|b|c"        — pipe-OR for string values
- *   "true"/"false" — boolean exact match
- *   "exact"        — plain string exact match
+ *   "includes:X"   - array contains X  (multi_select fields)
+ *   ">=N" / "<=N"  - numeric comparison
+ *   "N-M"          - inclusive numeric range
+ *   "a|b|c"        - pipe-OR for string values
+ *   "true"/"false" - boolean exact match
+ *   "exact"        - plain string exact match
  */
 export function matchFeature(
   value: string | number | boolean | string[],
@@ -66,7 +66,7 @@ interface ScoredCase {
 export function scoreCase(clinicalCase: ClinicalCase, answers: QuestionnaireAnswers): ScoredCase {
   const matchedFeatures: string[] = [];
 
-  // Required features — all must match; first failure → disqualify
+  // Required features - all must match; first failure disqualifies
   for (const rf of clinicalCase.required_features) {
     const value = answers[rf.feature_key];
     if (value === undefined || !matchFeature(value, rf.match)) {
@@ -77,7 +77,7 @@ export function scoreCase(clinicalCase: ClinicalCase, answers: QuestionnaireAnsw
 
   const requiredScore = clinicalCase.required_features.length > 0 ? 1 : 0;
 
-  // Supporting features — weighted partial score; default 0.5 when none defined
+  // Supporting features - weighted partial score; default 0.5 when none defined
   const sf = clinicalCase.supporting_features;
   let supportingScore = 0.5;
   if (sf.length > 0) {

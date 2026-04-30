@@ -19,9 +19,10 @@ const cases = casesData.cases as ClinicalCase[];
 export const CPOTriage = () => {
   const navigate = useNavigate();
   const [view, setView] = useState<"form" | "result">("form");
+  const [answers, setAnswers] = useState<QuestionnaireAnswers>({});
   const [result, setResult] = useState<RecommendationResult | null>(null);
 
-  const handleSubmit = (answers: QuestionnaireAnswers) => {
+  const handleSubmit = () => {
     const outcome = recommendTests(answers, cases);
     setResult(outcome);
     setView("result");
@@ -30,6 +31,7 @@ export const CPOTriage = () => {
 
   const handleStartOver = () => {
     setView("form");
+    setAnswers({});
     setResult(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -65,7 +67,12 @@ export const CPOTriage = () => {
             <span className="absolute top-0 right-0 p-4 font-mono text-xs text-white/30 uppercase tracking-widest">
               TRIAGE QUESTIONNAIRE
             </span>
-            <QuestionnaireForm questions={questions} onSubmit={handleSubmit} />
+            <QuestionnaireForm
+              questions={questions}
+              answers={answers}
+              onAnswersChange={setAnswers}
+              onSubmit={handleSubmit}
+            />
           </motion.div>
         )}
 

@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "disclaimer": "PLACEHOLDER — requires clinical review before any production use",
+  "disclaimer": "PLACEHOLDER - requires clinical review before any production use",
   "cases": [
     {
       "condition_id": "suspected_b12_deficiency",

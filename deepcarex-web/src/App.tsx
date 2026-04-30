@@ -6,8 +6,7 @@ import { Dashboard } from './pages/Dashboard';
 import { DiagnosisForm } from './pages/DiagnosisForm';
 import { Result } from './pages/Result';
 import { About } from './pages/About';
-import { CPO, CPOLayout } from './pages/CPO';
-import { CPODemoPage } from './pages/CPODemoPage';
+import { CPOTriage } from './pages/CPOTriage';
 
 function App() {
   return (
@@ -23,8 +22,7 @@ function App() {
             <Route path="/diagnosis/:diseaseId" element={<DiagnosisForm />} />
             <Route path="/result" element={<Result />} />
             <Route path="/about" element={<About />} />
-            <Route path="/cpo" element={<CPO />} />
-            <Route path="/cpo-demo" element={<CPODemoPage />} />
+            <Route path="/cpo" element={<CPOTriage />} />
           </Routes>
         </main>
       </div>

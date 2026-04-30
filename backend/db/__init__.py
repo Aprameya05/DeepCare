@@ -145,6 +145,30 @@ def ensure_core_tables(conn: sqlite3.Connection) -> None:
         )
         """
     )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS report_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            visit_id INTEGER NOT NULL,
+            report_path TEXT NOT NULL,
+            download_url TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS visit_vitals (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            visit_id INTEGER NOT NULL,
+            vital_name TEXT NOT NULL,
+            value REAL NOT NULL,
+            unit TEXT NOT NULL,
+            normal_min REAL,
+            normal_max REAL
+        )
+        """
+    )
     with contextlib.suppress(sqlite3.OperationalError):
         conn.execute(
             "ALTER TABLE recommended_tests ADD COLUMN doctor_confirmed INTEGER NOT NULL DEFAULT 0"

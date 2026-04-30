@@ -2,3 +2,5 @@ qdrant-client
 transformers
 torch
 sentence-transformers
+reportlab
+weasyprint

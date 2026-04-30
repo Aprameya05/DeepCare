@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 
 from backend.db import ensure_core_tables, get_connection
 from backend.ml.disease_severity import DEFAULT_BURDEN_PROFILE, DISEASE_BURDEN_PROFILES
@@ -13,6 +15,7 @@ from backend.services.burden_calculation_service import calculate_burden_score
 from backend.services.medcpt_service import fetch_pubmed_evidence, get_similar_cases_for_visit
 from backend.services.test_recommendation_service import generate_test_recommendations
 from backend.services.test_ordering_service import optimize_test_ordering
+from backend.services.pdf_report_service import generate_pdf_report
 
 app = FastAPI(title="ClinicalIQ Recommendation API", version="0.1.0")
 
@@ -165,3 +168,38 @@ def retrieval_pubmed(disease: str, test: str = "", symptoms: str = "") -> dict[s
 def retrieval_similar_cases(visit_id: int) -> dict[str, Any]:
     cases = get_similar_cases_for_visit(visit_id=visit_id, limit=5)
     return {"visit_id": visit_id, "results": cases}
+
+
+@app.post("/api/v1/reports/generate/{visit_id}")
+def generate_report(
+    visit_id: int,
+    country: str = "US",
+    city: str | None = None,
+    insurance_coverage: float = 0.0,
+) -> dict[str, Any]:
+    return generate_pdf_report(
+        visit_id=visit_id,
+        country=country,
+        city=city,
+        insurance_coverage=insurance_coverage,
+    )
+
+
+@app.get("/api/v1/reports/{visit_id}")
+def get_report(visit_id: int):
+    with get_connection() as conn:
+        ensure_core_tables(conn)
+        row = conn.execute(
+            """
+            SELECT report_path
+            FROM report_history
+            WHERE visit_id = ?
+            ORDER BY created_at DESC, id DESC
+            LIMIT 1
+            """,
+            (visit_id,),
+        ).fetchone()
+    path = Path(str(row["report_path"])) if row else (Path(__file__).resolve().parents[1] / "clinicaliq" / "data" / "reports" / f"{visit_id}.pdf")
+    if not path.exists():
+        return {"visit_id": visit_id, "error": "Report not found"}
+    return FileResponse(str(path), media_type="application/pdf", filename=f"{visit_id}.pdf")

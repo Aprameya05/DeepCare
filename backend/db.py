@@ -47,6 +47,38 @@ def ensure_core_tables(conn: sqlite3.Connection) -> None:
         )
         """
     )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS country_test_pricing (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            country TEXT NOT NULL,
+            city TEXT,
+            test_name TEXT NOT NULL,
+            price_usd REAL NOT NULL CHECK(price_usd >= 0),
+            source_note TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            UNIQUE(country, city, test_name)
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS burden_scores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            visit_id INTEGER NOT NULL,
+            total_cost REAL NOT NULL,
+            duration_days INTEGER NOT NULL,
+            frequency_count INTEGER NOT NULL,
+            severity_score REAL NOT NULL,
+            raw_burden REAL NOT NULL,
+            normalized_score REAL NOT NULL,
+            category TEXT NOT NULL,
+            explanation TEXT NOT NULL,
+            ordering_snapshot TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+        """
+    )
     # Optional helper tables used by local validation and by service fallback logic.
     conn.execute(
         """

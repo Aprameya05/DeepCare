@@ -39,7 +39,11 @@ export function ReviewStep({ visitId }: ReviewStepProps) {
   }
 
   // Check for contradiction
-  const hasContradiction = predictionData?.uncertainty_flags?.some(f => f.toLowerCase().includes('contradict'));
+  const uncertaintyFlags = Array.from(new Set([
+    ...(predictionData?.uncertainty_flags || []),
+    ...(burdenData?.uncertainty_flags || []),
+  ]));
+  const hasContradiction = uncertaintyFlags.some(f => f.toLowerCase().includes('contradict'));
 
   return (
     <div className="space-y-6">
@@ -62,7 +66,7 @@ export function ReviewStep({ visitId }: ReviewStepProps) {
       )}
 
       {/* Must render at TOP of screen per spec */}
-      <UncertaintyPanel flags={predictionData?.uncertainty_flags || []} />
+      <UncertaintyPanel flags={uncertaintyFlags} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6">

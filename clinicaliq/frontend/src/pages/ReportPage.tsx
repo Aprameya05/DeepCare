@@ -12,7 +12,7 @@ export default function ReportPage() {
     queryKey: ['report', id],
     queryFn: async () => {
       await reportsApi.generate(id!);
-      return `/api/reports/${id}/download`; // Mock URL for iframe preview
+      return `/api/v1/reports/${id}`;
     },
     enabled: !!id,
   });

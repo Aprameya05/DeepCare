@@ -24,16 +24,18 @@ export function OverrideForm({ visitId, onOverrideSubmitted }: { visitId: string
       </CardHeader>
       <CardContent className="space-y-4 pt-4">
         <div>
-          <label className="text-sm font-medium mb-1 block">Alternative Diagnosis / Corrected Output</label>
+          <label htmlFor="alternative-diagnosis" className="text-sm font-medium mb-1 block">Alternative Diagnosis / Corrected Output</label>
           <Textarea 
+            id="alternative-diagnosis"
             placeholder="Enter the correct diagnosis here..."
             value={alternativeDiagnosis}
             onChange={(e) => setAlternativeDiagnosis(e.target.value)}
           />
         </div>
         <div>
-          <label className="text-sm font-medium mb-1 block">Reason for Override</label>
+          <label htmlFor="override-reason" className="text-sm font-medium mb-1 block">Reason for Override</label>
           <Textarea 
+            id="override-reason"
             placeholder="Briefly explain why the model was incorrect..."
             value={reason}
             onChange={(e) => setReason(e.target.value)}

@@ -67,6 +67,7 @@ export interface TestRecommendation {
 export interface BurdenResponse {
   level: 'Low' | 'Medium' | 'High';
   score: number;
+  uncertainty_flags?: string[];
   cost_breakdown: {
     raw_cost: number;
     insurance_reduction: number;

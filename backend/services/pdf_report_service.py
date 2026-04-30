@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
 from backend.db import ensure_core_tables, get_connection
 from backend.ml.disease_severity import DEFAULT_BURDEN_PROFILE, DISEASE_BURDEN_PROFILES
+from backend.ml.uncertainty_engine import detect_uncertainties
 from backend.reports.pdf_generator import generate_visit_pdf
 from backend.services.burden_calculation_service import calculate_burden_score
 from backend.services.disease_ranking_service import get_disease_ranking_with_evidence
@@ -13,6 +15,9 @@ from backend.services.test_ordering_service import optimize_test_ordering
 
 
 def _reports_dir() -> Path:
+    configured = os.getenv("CLINICALIQ_REPORTS_DIR")
+    if configured:
+        return Path(configured)
     return Path(__file__).resolve().parents[2] / "clinicaliq" / "data" / "reports"
 
 
@@ -134,10 +139,18 @@ def generate_pdf_report(
             unique_refs.append(ref)
 
     report_path = _reports_dir() / f"{visit_id}.pdf"
+    uncertainty_flags = detect_uncertainties(
+        predictions=rankings,
+        symptoms=str(visit.get("symptoms", "")),
+        clinical_summary=str(visit.get("clinical_summary", "")),
+        vitals=vitals,
+        recommendations=ordering["ordered_tests"],
+        pricing_flags=list(ordering.get("uncertainty_flags", [])),
+    )
     generate_visit_pdf(
         output_path=report_path,
         visit=visit,
-        uncertainty_flags=list(ordering.get("uncertainty_flags", [])),
+        uncertainty_flags=uncertainty_flags,
         vitals=vitals,
         disease_rankings=rankings,
         recommended_tests=ordering["ordered_tests"],

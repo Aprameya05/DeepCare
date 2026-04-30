@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import os
 import sqlite3
 from pathlib import Path
 
@@ -9,7 +10,8 @@ DEFAULT_DB_PATH = BACKEND_DIR / "clinicaliq.db"
 
 
 def get_connection(db_path: str | Path | None = None) -> sqlite3.Connection:
-    target_path = Path(db_path) if db_path else DEFAULT_DB_PATH
+    configured_path = db_path or os.getenv("CLINICALIQ_DB_PATH") or DEFAULT_DB_PATH
+    target_path = Path(configured_path)
     target_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(target_path)
     conn.row_factory = sqlite3.Row
@@ -17,6 +19,20 @@ def get_connection(db_path: str | Path | None = None) -> sqlite3.Connection:
 
 
 def ensure_core_tables(conn: sqlite3.Connection) -> None:
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS patients (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            age INTEGER NOT NULL,
+            gender TEXT NOT NULL,
+            phone TEXT NOT NULL DEFAULT '',
+            medical_history TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+        """
+    )
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS disease_test_rules (
@@ -97,8 +113,12 @@ def ensure_core_tables(conn: sqlite3.Connection) -> None:
         """
         CREATE TABLE IF NOT EXISTS visits (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            patient_id INTEGER,
+            chief_complaint TEXT NOT NULL DEFAULT '',
             symptoms TEXT NOT NULL DEFAULT '',
-            clinical_summary TEXT NOT NULL DEFAULT ''
+            clinical_summary TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'active',
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
         )
         """
     )
@@ -175,6 +195,14 @@ def ensure_core_tables(conn: sqlite3.Connection) -> None:
         )
     with contextlib.suppress(sqlite3.OperationalError):
         conn.execute("ALTER TABLE visits ADD COLUMN clinical_summary TEXT NOT NULL DEFAULT ''")
+    with contextlib.suppress(sqlite3.OperationalError):
+        conn.execute("ALTER TABLE visits ADD COLUMN patient_id INTEGER")
+    with contextlib.suppress(sqlite3.OperationalError):
+        conn.execute("ALTER TABLE visits ADD COLUMN chief_complaint TEXT NOT NULL DEFAULT ''")
+    with contextlib.suppress(sqlite3.OperationalError):
+        conn.execute("ALTER TABLE visits ADD COLUMN status TEXT NOT NULL DEFAULT 'active'")
+    with contextlib.suppress(sqlite3.OperationalError):
+        conn.execute("ALTER TABLE visits ADD COLUMN created_at TEXT NOT NULL DEFAULT (datetime('now'))")
     with contextlib.suppress(sqlite3.OperationalError):
         conn.execute(
             "ALTER TABLE disease_rankings ADD COLUMN confirmed_by_doctor INTEGER NOT NULL DEFAULT 0"

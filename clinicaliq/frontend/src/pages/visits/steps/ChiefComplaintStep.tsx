@@ -12,8 +12,9 @@ export function ChiefComplaintStep({ initialValue, onNext }: { initialValue: str
       <p className="text-sm text-slate-500">Describe the primary reason for the patient's visit today.</p>
       
       <div className="space-y-2">
-        <Label>Complaint Description</Label>
+        <Label htmlFor="complaint-description">Complaint Description</Label>
         <Textarea 
+          id="complaint-description"
           placeholder="e.g. Patient presents with severe headache for 3 days..."
           value={value}
           onChange={(e) => setValue(e.target.value)}

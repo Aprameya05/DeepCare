@@ -1,0 +1,12 @@
+.git
+.pytest_cache
+**/__pycache__
+**/*.pyc
+**/.venv
+**/node_modules
+**/dist
+**/.playwright
+backend/clinicaliq.db
+clinicaliq/data/reports/*.pdf
+DeepCareX.pdf
+DeepCareX.pptx

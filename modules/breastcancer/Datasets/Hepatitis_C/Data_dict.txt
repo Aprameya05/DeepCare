@@ -1,0 +1,60 @@
+Category
+Category/Type of the patient
+Target
+
+Age
+Age
+
+Sex
+Sex -Male - 0, Female -1
+
+ALB
+Albumin Blood Test -numeric with decimal
+
+ALP
+Alkaline phosphatase -numeric with decimal
+
+ALT
+Alanine Transaminase -numeric with decimal
+
+AST
+Aspartate Transaminase -numeric with decimal
+
+BIL
+Bilirubin -numeric with decimal
+
+CHE
+Acetylcholinesterase -numeric with decimal
+
+CHOL
+Cholesterol -numeric with decimal
+
+CREA
+Creatinine -numeric with decimal
+
+GGT
+Gamma-Glutamyl Transferase -numeric with decimal
+
+PROT
+Proteins -numeric with decimal
+
+Original data
+
+Attributes 1 to 4 refer to the data of the patient:
+1) X (Patient ID/No.)
+2) Category (diagnosis) (values: '0=Blood Donor', '0s=suspect Blood Donor', '1=Hepatitis', '2=Fibrosis', '3=Cirrhosis')
+3) Age (in years)
+4) Sex (f,m)
+Attributes 5 to 14 refer to laboratory data:
+5) ALB
+6) ALP
+7) ALT
+8) AST
+9) BIL
+10) CHE
+11) CHOL
+12) CREA
+13) GGT
+14) PROT
+
+The target attribute for classification is Category (2): blood donors vs. Hepatitis C patients (including its progress ('just' Hepatitis C, Fibrosis, Cirrhosis).

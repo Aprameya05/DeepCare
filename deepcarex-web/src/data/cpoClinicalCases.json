@@ -1,0 +1,105 @@
+{
+  "version": "1.0",
+  "disclaimer": "PLACEHOLDER — requires clinical review before any production use",
+  "cases": [
+    {
+      "condition_id": "suspected_b12_deficiency",
+      "condition_name": "Suspected Vitamin B12 Deficiency",
+      "rationale": "Vegetarian-leaning diet with fatigue and neuropathic symptoms increases suspicion for low B12 status.",
+      "required_features": [
+        { "feature_key": "diet_preference", "match": "vegetarian|eggetarian" },
+        { "feature_key": "fatigue_level", "match": ">=4" },
+        { "feature_key": "numbness_tingling", "match": "true" }
+      ],
+      "supporting_features": [
+        { "feature_key": "age_years", "match": ">=35", "weight": 0.25 },
+        { "feature_key": "sleep_quality", "match": "<=2", "weight": 0.15 }
+      ],
+      "recommended_tests": [
+        { "test_name": "Serum Vitamin B12", "priority": "primary" },
+        { "test_name": "CBC with peripheral smear", "priority": "primary" },
+        { "test_name": "Serum Methylmalonic Acid", "priority": "secondary" }
+      ],
+      "confidence_floor": 0.62
+    },
+    {
+      "condition_id": "suspected_vitamin_d_deficiency",
+      "condition_name": "Suspected Vitamin D Deficiency",
+      "rationale": "Low sun exposure with fatigue and body aches is a common deficiency pattern in urban Indian adults.",
+      "required_features": [
+        { "feature_key": "sun_exposure", "match": "low" },
+        { "feature_key": "fatigue_level", "match": ">=3" },
+        { "feature_key": "body_aches", "match": "true" }
+      ],
+      "supporting_features": [
+        { "feature_key": "physical_activity_level", "match": "low", "weight": 0.2 },
+        { "feature_key": "diet_preference", "match": "vegetarian|eggetarian", "weight": 0.15 }
+      ],
+      "recommended_tests": [
+        { "test_name": "25-OH Vitamin D", "priority": "primary" },
+        { "test_name": "Serum Calcium", "priority": "secondary" }
+      ],
+      "confidence_floor": 0.58
+    },
+    {
+      "condition_id": "suspected_hypothyroidism",
+      "condition_name": "Suspected Hypothyroidism",
+      "rationale": "Cold intolerance and hair fall pattern with fatigue and weight gain fits a classic low-thyroid clinical cluster.",
+      "required_features": [
+        { "feature_key": "thyroid_pattern_symptoms", "match": "both" },
+        { "feature_key": "weight_change", "match": "weight_gain" },
+        { "feature_key": "fatigue_level", "match": ">=3" }
+      ],
+      "supporting_features": [
+        { "feature_key": "family_history", "match": "includes:thyroid", "weight": 0.35 },
+        { "feature_key": "sex", "match": "female", "weight": 0.2 }
+      ],
+      "recommended_tests": [
+        { "test_name": "TSH", "priority": "primary" },
+        { "test_name": "Free T4", "priority": "primary" },
+        { "test_name": "Anti-TPO Antibody", "priority": "secondary" }
+      ],
+      "confidence_floor": 0.67
+    },
+    {
+      "condition_id": "suspected_type2_diabetes_screening",
+      "condition_name": "Suspected Type 2 Diabetes (Screening)",
+      "rationale": "Age above 40 with family risk and osmotic symptoms warrants early diabetes screening in primary care.",
+      "required_features": [
+        { "feature_key": "age_years", "match": ">=40" },
+        { "feature_key": "family_history", "match": "includes:diabetes" },
+        { "feature_key": "thirst_urination", "match": "true" }
+      ],
+      "supporting_features": [
+        { "feature_key": "weight_change", "match": "weight_gain|weight_loss", "weight": 0.25 },
+        { "feature_key": "physical_activity_level", "match": "low", "weight": 0.2 }
+      ],
+      "recommended_tests": [
+        { "test_name": "HbA1c", "priority": "primary" },
+        { "test_name": "Fasting Plasma Glucose", "priority": "primary" },
+        { "test_name": "Urine Routine and Microscopy", "priority": "secondary" }
+      ],
+      "confidence_floor": 0.69
+    },
+    {
+      "condition_id": "suspected_iron_deficiency_anemia",
+      "condition_name": "Suspected Iron-Deficiency Anemia",
+      "rationale": "Fatigue with exertional breathlessness and dizziness is suggestive of anemia, with higher pretest probability in women.",
+      "required_features": [
+        { "feature_key": "fatigue_level", "match": ">=4" },
+        { "feature_key": "breathlessness_on_exertion", "match": "true" },
+        { "feature_key": "dizziness", "match": "true" }
+      ],
+      "supporting_features": [
+        { "feature_key": "sex", "match": "female", "weight": 0.4 },
+        { "feature_key": "weight_change", "match": "weight_loss", "weight": 0.15 }
+      ],
+      "recommended_tests": [
+        { "test_name": "CBC with peripheral smear", "priority": "primary" },
+        { "test_name": "Serum Ferritin", "priority": "primary" },
+        { "test_name": "Transferrin Saturation", "priority": "secondary" }
+      ],
+      "confidence_floor": 0.65
+    }
+  ]
+}

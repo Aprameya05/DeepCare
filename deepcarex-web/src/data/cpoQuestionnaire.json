@@ -1,0 +1,103 @@
+{
+  "version": "1.0",
+  "questions": [
+    {
+      "id": "age_years",
+      "label": "What is your age?",
+      "type": "number",
+      "unit": "years",
+      "feature_key": "age_years"
+    },
+    {
+      "id": "sex",
+      "label": "What is your sex?",
+      "type": "single_select",
+      "options": ["female", "male", "other"],
+      "feature_key": "sex"
+    },
+    {
+      "id": "diet_preference",
+      "label": "What best describes your diet?",
+      "type": "single_select",
+      "options": ["vegetarian", "eggetarian", "non_vegetarian"],
+      "feature_key": "diet_preference"
+    },
+    {
+      "id": "fatigue_level",
+      "label": "How tired do you feel on most days? (1 = not tired, 5 = very tired)",
+      "type": "scale_1_5",
+      "feature_key": "fatigue_level"
+    },
+    {
+      "id": "weight_change",
+      "label": "Have you noticed a recent weight change without trying?",
+      "type": "single_select",
+      "options": ["no_change", "weight_loss", "weight_gain"],
+      "feature_key": "weight_change"
+    },
+    {
+      "id": "sleep_quality",
+      "label": "How would you rate your sleep quality? (1 = very poor, 5 = very good)",
+      "type": "scale_1_5",
+      "feature_key": "sleep_quality"
+    },
+    {
+      "id": "numbness_tingling",
+      "label": "Do you feel numbness or tingling in your hands or feet?",
+      "type": "boolean",
+      "feature_key": "numbness_tingling"
+    },
+    {
+      "id": "thyroid_pattern_symptoms",
+      "label": "Which of these have you noticed recently?",
+      "type": "single_select",
+      "options": ["none", "hair_loss", "cold_intolerance", "both"],
+      "feature_key": "thyroid_pattern_symptoms"
+    },
+    {
+      "id": "thirst_urination",
+      "label": "Do you have unusual thirst or need to pass urine very often?",
+      "type": "boolean",
+      "feature_key": "thirst_urination"
+    },
+    {
+      "id": "dizziness",
+      "label": "Do you often feel dizzy or lightheaded?",
+      "type": "boolean",
+      "feature_key": "dizziness"
+    },
+    {
+      "id": "breathlessness_on_exertion",
+      "label": "Do you get short of breath while walking fast or climbing stairs?",
+      "type": "boolean",
+      "feature_key": "breathlessness_on_exertion"
+    },
+    {
+      "id": "body_aches",
+      "label": "Do you have frequent body aches or muscle pain?",
+      "type": "boolean",
+      "feature_key": "body_aches"
+    },
+    {
+      "id": "sun_exposure",
+      "label": "How much direct sunlight do you usually get?",
+      "type": "single_select",
+      "options": ["low", "moderate", "high"],
+      "feature_key": "sun_exposure"
+    },
+    {
+      "id": "physical_activity_level",
+      "label": "How active are you in a typical week?",
+      "type": "single_select",
+      "options": ["low", "moderate", "high"],
+      "feature_key": "physical_activity_level"
+    },
+    {
+      "id": "family_history",
+      "label": "Do close family members have any of these conditions?",
+      "type": "multi_select",
+      "options": ["diabetes", "thyroid", "cardiac", "none"],
+      "feature_key": "family_history"
+    }
+  ]
+}

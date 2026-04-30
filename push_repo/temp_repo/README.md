@@ -1,5 +1,13 @@
-<h1 align="center">NexioraDx: AI-based Healthcare System</h1>
+<h1 align="center">DeepCareX: AI-based Healthcare System</h1>
 
+<h3 align="center">Sumon Singh</h3>
+<h3 align="center">2023</h3>
+
+---
+
+## Live Demo
+You can explore the live version of this project here:  
+[DeepCareX](https://deepcarex-latest.onrender.com/)
 
 ---
 
@@ -7,17 +15,19 @@
 
 - [Introduction](#intro)
 - [Objective](#obj)
+- [Literature Review](#LR)
 - [Methodology and Implementation Details](#MID)
 - [Algorithms Used For This Application](#Algo)
 - [Experimentation Setup and Results](#Exp)
 - [Use Cases](#cases)
-- [System Requirements](#requirements)
-- [How It Works (End-to-End)](#workflow)
-- [Sample Input to Result Flow](#sample-flow)
+- [User Interfaace (UI)](#ui)
 - [Conclusion](#con)
+- [References](#ref)
 - [Project Presentation](#ppt)
 - [Installation](#install)
 - [Docker Deployment](#docker)
+- [Contribution](#contri)
+
 ---
 
 
@@ -52,6 +62,73 @@ Some of the algorithms used in this project are XGBoost, Random Forest, Logistic
 - **Convolutional Neural Networks (CNNs)** are a subclass of deep learning models. Convolutional and pooling layers are examples of specialized layers used by CNNs to automatically learn hierarchical patterns and features from the input data.
 
 Average accuracy achieved throughout was above 90%.
+
+
+## **Literature Review** <a name="LR"></a>
+
+In M. Swathy and K. Saruladha's paper [1], the classification, data mining, machine learning, and deep learning models used to predict cardiovascular illnesses are compared and reported. Some of the points they noticed were that a better model with greater accuracy and performance can be produced by using more medically relevant features. Also, combining data and text mining with the current models can create effective prediction systems. Swarm intelligence techniques and genetic algorithms can be used to focus more on the feature selection and input parameters, which will increase execution. They also observed that, for 15 attributes, the Multi-layered perceptron with back propagation gives better results as compared to others.
+
+Based on the patient's clinical characteristics, the authors P. Rani et al. [2] suggest a hybrid decision support system that can help in the early detection of heart disease. To deal with the missing values, the authors employed the multivariate imputation by chained equations algorithms. The choice of appropriate features from the supplied dataset has been made using a hybridised feature selection approach that combines the Genetic approach (GA) and recursive feature elimination. SMOTE (Synthetic Minority Oversampling Technique) and common scalar approaches have also been employed for pre-processing the data. The authors used support vector machine, naive bayes, logistic regression, random forest, and adaboost classifiers in the final stage of creating the proposed hybrid system. With the random forest classifier, the system has been found to produce the most accurate results. The proposed hybrid system was put to the test in a Python-developed simulation environment. The system was tested on the Cleveland heart disease dataset available at UCI (University of California, Irvine) machine learning repository. It gave an accuracy of 86.6%.
+
+S. Afzal, et al. [3] did a review study of Alzheimer's based on the classification of cognitive impairment and neuroimaging. This study offers a thorough analysis of the published research on AD, particularly computer-aided diagnosis. The imaging modalities are:
+1. Magnetic resonance imaging (MRI)
+2. fMRI, or functional MRI
+3. Diffusion tensor imaging
+4. Amyloid-PET
+5. Positron emission tomography (PET)
+
+According to the study, using a classification criterion based on features can better diagnose the condition and advance its clinical course. Support Vector Machine, Bayesian Classifiers, Linear Discriminant Analysis, K-Nearest Neighbour, and Deep Learning are some of the most often used machine learning classifiers for diagnosing AD.
+
+P. Gokila Brinddha [4] applied ANN and CNN on MRI images of the brain to detect the presence of a brain tumour and analysed the performance. The ANN model gave a training accuracy of 97.13% and validation accuracy of 71.51% for 50 epochs. The testing accuracy achieved by the model was 65.21%. Meanwhile, the CNN model gave a testing accuracy of 89%.
+
+Dheiver and Ewerton Santos [5] used MobileNetV2 to detect brain tumours. MobileNetV2 is a 53-layer deep CNN pre-trained model which is trained on almost a million images from the ImageNet database. It gave a validation accuracy of 89.24%.
+
+In this study, M. Jyotiyana and N. Kesswani [6] used the National Alzheimer's Coordinating Centre (NACC) database to categorise patients with Alzheimer's disease using random forest (RF), support vector machine (SVM), K-nearest neighbour (KNN), linear discriminate analysis (LDA), and neural networks (NN). They also classified MRI data using a multi-layer perceptron (MLP), and the results showed that it was the most accurate method with 94% precision. MLP is able to handle large and complicated real-world data sets since it can operate on input variables simultaneously.
+
+D. Yang, et al. [7] investigated several deep learning enhanced techniques and applied them to X-ray and CT scan images to detect COVID-19. Four pre-trained CNN models were used in this paper for classification of COVID-19. They are VGG16, DenseNet121, ResNet50, and ResNet152. They proposed a Fast.AIResNet Framework to automatically find the best training parameters, pre-process the data, and find the best architecture. The F1-score and accuracy for the diagnosis of COVID-19 using CT scan images were both over 96%. In order to overcome the difficulty of lack of data and reduce the training period, they also used transfer learning techniques. Enhanced VGG16 deep transfer learning architecture was used to complete the binary and multi-class classification of X-ray image tasks. The enhanced VGG16 detected COVID-19 with an accuracy score of 99%. Compared to other relevant approaches in their literature review, the suggested methods produce superior COVID-19 diagnostic outcomes.
+
+By combining a DNN (deep neural network) model with two ML models for illness prediction using laboratory test data, D. Park, et al. [8] hoped to create a new, improved ensemble model. Based on value counts, clinical importance-related characteristics, and missing values, 86 attributes (laboratory tests) were chosen from datasets. On 5145 cases, they gathered sample datasets, which included 326,686 laboratory test results. Based on the International Classification of Disorders, 10th Revision (ICD-10) codes, they examined a total of 39 distinct disorders. These datasets were used to build DNN models using TensorFlow and the light gradient boosting machine (LightGBM) and extreme gradient boosting (XGBoost) ML models. For the five most prevalent illnesses, the optimised ensemble model had a prediction accuracy of 92% and an F1-score of 81%. The prediction abilities and patterns for the classification of diseases between the deep learning and ML models were different. Utilising a confusion matrix and the SHAP value method, they examined the significance of each feature. Through the classification of diseases, their new ML model successfully predicted diseases with a high degree of accuracy.
+
+R. Keniya, et al. [9] created a system for predicting diseases using several ML algorithms. More than 230 diseases were present in the dataset that was processed. The diagnosis method outputs the ailment that a person may be suffering from based on the symptoms, age, and gender of the individual. In comparison to the other algorithms, the weighted KNN algorithm produced the best results. The weighted KNN algorithm gave a prediction accuracy of 93.5%.
+
+K. Saxena, et al. [10] created a web application for non-transmissible diseases that can be easily used by someone with just a little medical training, making early disease prediction possible. Their system includes image capture, image preprocessing, segmentation, feature extraction, and classification of disease. If the associated disease parameters are correctly understood, the web application can identify many diseases, including cancer, diabetes, heart disease, liver disease, renal diseases, malaria, and pneumonia. They achieved an accuracy of 94% using their proposed Faster CNN.
+
+S. K. Sarangi [11] proposed a deep learning framework to detect diseases which include the stages: The suggested framework's phases are as follows: 
+1. Generating data for use in medicine
+2. Utilising natural language processing to enhance unstructured data
+3. Utilising deep learning to find patterns in massive datasets
+4. Making medical decisions
+
+Their proposed framework gave an average accuracy of 90.8%.
+
+In the paper of D. Varshni, et al. [12] evaluate how well pre-trained CNN models perform as feature-extractors used in conjunction with various classifiers to identify abnormal and normal chest X-rays. They use analysis to choose the best CNN model for the job. According to statistical findings, pre-trained CNN models combined with supervised classifier algorithms can be highly helpful for analysing chest X-ray pictures, particularly when trying to find pneumonia. They assessed the performance of pre-trained CNN models including Xception, VGG16, VGG-19, ResNet-50, DenseNet-121, and DenseNet-169 followed by other classifiers like Random Forest, K-nearest neighbours, Naive Bayes, and Support Vector Machine (SVM). ResNet-50 CNN model with depth 168 with SVM classifier was shown to perform better than all other pre-trained CNN models, with an AUC score of 0.7749.
+
+In the proposed work of D. Kumar G, et al. [13] used data pre-processing methods like removing noisy data, removing missing data and classification of attributes for prediction and decision making at various levels. In order to diagnose or raise awareness of heart disease, this research suggests a prediction model to determine whether a person has the condition or not. To present an appropriate model for predicting cardiovascular illness is done by comparing the accuracies of applying rules to the individual findings of Support Vector Machine, Gradient Boosting, Random forest, Naive Bayes classifier, and logistic regression on the dataset gathered in a region. Most of the algorithms gave good results, but logistic regression achieved the highest accuracy of 91.61%.
+
+D. K. Rathore and P. K. Mannepalli [14] proposed a model for supervised classification experiment evaluation to assess how well the proposed method classified the data. The work was completed in a number of steps, starting with the uploading or importing of datasets, followed by data preprocessing to remove missing data or identify values, feature selection method application to extract data for disease identification, and finally the classification phase.
+
+The study of R. Bharti, et al. [15] compares the findings and analysis of the UCI Machine Learning Heart Disease dataset using a variety of machine learning algorithms and deep learning techniques. The dataset has 14 key features that are needed to do the analysis. The dataset contains a few unimportant characteristics that are handled using Isolation Forest, and data is also normalised for improved results. Various promising findings are obtained and are confirmed using accuracy and confusion matrix. They used various approaches which included:
+1. With feature selection and outlier detection
+2. Without feature selection and outlier detection
+3. Deep learning approach
+
+94.2% accuracy was achieved using a deep learning method.
+
+M. O. Edeh, et al. [16] constructed an AI-based ensemble model for predicting Hepatitis C illness in patients with the ability to predict advanced fibrosis by combining clinical data and blood biomarkers after studying several types of machine learning algorithms to build the classification models. A wide range of Hepatitis C disease-related parameters were included in the dataset. Three machine learning techniques were used on the training data set, and the verified data was then utilised to assess the ensemble learning-based prediction model. The findings showed that, in comparison to the prevailing machine learning methods, the suggested ensemble learning model has been found as being more accurate. The most accurate learning strategy was the Multi-layer Perceptron (MLP) method (94.1% accuracy). The second-most accurate learning algorithm was the Bayesian network (94.47% accuracy). The accuracy increased to a level of 95.59%. The study showed that employing an ensemble model rather than a single algorithm provides higher precision or accuracy in predicting Hepatitis C illness.
+
+Here's the formatted version of your content in Markdown:
+
+In this article, deep learning techniques for illness prediction are reviewed. Z. Yu, et al. [17] separated the algorithms into two categories: algorithms for structured data and algorithms for unstructured data. ANN and FM-Deep Learning algorithms are examples of structured data algorithms. Algorithms for unstructured data include CNN, RNN, etc. The theory, history of development, and use of these algorithms in illness prediction are explained in this study. Additionally, their review listed a number of issues with current disease research, including:
+1. Poor capacity to interpret
+2. Data inequality
+3. Poor data quality
+4. Insufficient data
+
+Dr C. K. Gomathy [18] created a system that processed the symptoms that the user gives as inputs and gives the probability of disease as output. The prediction of the illness is done using the supervised machine learning method known as the Naive Bayes classifier. The Naive Bayes method determines the likelihood of the illness. They also forecasted illnesses like Diabetes, Malaria, Jaundice, Dengue, and Tuberculosis using linear regression and decision trees. Decision tree gave an accuracy of 84.5% and Naïve Bayes 89.4%. SVM gave an accuracy score of 96.49% while Random Forest gave the highest accuracy of 98.95%.
+
+O. E. Santangelo's, et al. [19] study's objective is to demonstrate if machine learning can be used to anticipate infectious disease outbreaks in advance. The Cochrane Collaboration's recommendations for systematic reviews, meta-analyses of observational studies in epidemiology, and recommended reporting items were all followed in the conduct of this study. The research examined in this systematic review show that it is feasible to forecast the prevalence and development of various infectious illnesses; by integrating a number of machine learning methods and approaches, it is possible to get findings that are precise and tenable.
+
+A. K. Dwivedi [20] realized that it was crucial to develop a framework that can quickly and accurately identify the prevalence of heart disease in hundreds of samples. Six machine learning approaches were tested at this point for their ability to predict cardiac disease. These algorithms' performance was evaluated using eight different classification performance metrics. Additionally, the receiver operating characteristic curve was used to evaluate these methods. With a sensitivity and specificity of 89 and 81%, respectively, logistic regression was shown to have the greatest classification accuracy of 85%.
 
 
 ## **Methodology and Implementation Details** <a name="MID"></a>
@@ -277,7 +354,7 @@ Also, a sqlite3 database is added to store the information of the user.
 
 ### **D. Directory Tree**
 
-**NexioraDx - (ROOT)**
+**DeepCareX - (ROOT)**
 
 1. **Datasets** -- Consists of 8 datasets of diseases.
 2. **Model_Code** -- Python codes for model generation of 8 diseases.
@@ -302,14 +379,14 @@ Also, a sqlite3 database is added to store the information of the user.
 #### Run The Application:
 
 1. **Create the databases:**
-   - Navigate to: `NexioraDx/deepcarex-web`
+   - Navigate to: `DeepCareX/Website/database`
    - Run: `database.py`
    - Syntax: `python3 database.py`
 
 2. **Run The Application:**
-   - Navigate to: `NexioraDx/deepcarex-web`
-   - Run: `npm run dev`
-   - Dev URL: `http://localhost:5173`
+   - Navigate to: `DeepCareX/Website`
+   - Run: `main.py`
+   - Syntax: `python3 main.py`
 
 
 ### The algorithms gave us good results. We will now go through the evaluation metrics obtained for each disease.
@@ -407,152 +484,67 @@ Machine and deep learning-based diagnostics' time-saving feature is especially h
 
 Additionally, the capacity to store symptom information and associated diagnoses from various individuals might be extremely beneficial for research. By combining this data, it is possible to analyse patterns and trends on a broader scale and find correlations, risk factors, and fresh perspectives on various diseases. These datasets can be used by researchers to increase understanding, create more precise models, and boost medical research and healthcare procedures.
 
-## **System Requirements** <a name="requirements"></a>
+## **User Interface (UI)** <a name="ui"></a>
 
-### 1) Core runtime for the original Flask application
+### Home page:
 
-- **Python:** 3.10 to 3.12 recommended  
-  (TensorFlow support is version-sensitive; Python 3.13 is not recommended for this stack)
-- **Pip packages (minimum):**
-  - `flask`
-  - `tensorflow`
-  - `numpy`
-  - `pandas`
-  - `scikit-learn`
-  - `xgboost`
-  - `matplotlib`
-  - `seaborn`
-  - `joblib`
-  - `pickle` (standard library, no pip install required)
-  - `sqlite3` (standard library, no pip install required)
-- **OS:** Windows/Linux/macOS
-- **Storage:** Sufficient free space for datasets and model files (`.pkl`, `.h5`, `.hdf5`)
+![](./media/image38.png)
 
-### 2) Optional modern frontend (`deepcarex-web`)
+![](./media/image39.png)
 
-- **Node.js:** v18+ (v20+ preferred)
-- **npm:** v9+
-- Install dependencies with `npm install`
-- Run with `npm run dev` (Vite)
+![](./media/image40.png)
 
-### 3) Data and model artifacts required
+### About Us
 
-- Pre-trained model files under `Models/`
-- Uploaded image input directory under your browser upload flow in `deepcarex-web`
-- Runtime browser storage used for API key/session-like data via `localStorage`
+![](./media/image41.png)
 
-## **How It Works (End-to-End)** <a name="workflow"></a>
+### Contact
 
-NexioraDx combines classical ML and deep learning models to handle both **tabular symptom data** and **medical image data**.
+![](./media/image42.png)
 
-### Step 1: User provides input
+### Login
 
-- **Tabular diseases** (for example, diabetes, hepatitis, breast cancer): user submits form values such as age, history, blood metrics, and risk indicators.
-- **Image-based diseases** (for example, brain tumor, Alzheimer's, kidney, pneumonia, COVID-19): user uploads an image (MRI/CT/X-ray), plus basic demographic metadata in the form.
+![](./media/image43.png)
 
-### Step 2: Request handling in Flask
+### After Registration/Login
 
-- Routing and form processing are handled in the React app under `deepcarex-web/src`.
-- For image tasks:
-  - The file is saved securely in `database/Uploaded`.
-  - The image is resized and preprocessed.
-  - The selected deep model (`.h5`/`.hdf5`) is loaded and used for inference.
-- For tabular tasks:
-  - Input is transformed according to model expectations.
-  - Pre-trained ML estimators (`.pkl`) generate class prediction.
+#### Alzheimer's
 
-### Step 3: Model inference and confidence
+![](./media/image44.png)
 
-- The model returns a target class and confidence/probability score.
-- The application maps numeric classes to human-readable diagnosis labels.
-- Output format is disease-specific (for example, `Kidney Stone (xx.xx%)`, `Normal (xx.xx%)`, etc.).
+#### Breast Cancer
 
-### Step 4: Optional persistence
+![](./media/image45.png)
 
-- If the "save" option is enabled in the form, patient metadata and prediction are inserted into SQLite tables:
-  - `USER`
-  - `CONTACT`
-  - `NEWSLETTER`
-  - `PATIENTS`
+#### Brain Tumor
 
-### Step 5: Result generation
+![](./media/image46.png)
 
-- The backend renders a result template with:
-  - patient identifiers (name/id/age/gender)
-  - disease type
-  - predicted outcome with confidence
-- This creates a complete input -> inference -> report flow.
+#### Covid-19
 
-## **Sample Input to Result Flow** <a name="sample-flow"></a>
+![](./media/image47.png)
 
-This section clarifies how image input (like the brain MRI and kidney CT examples) is processed from upload to output.
+#### Diabetes
 
-### A) Brain MRI-type sample
+![](./media/image48.png)
 
-1. User uploads a brain MRI slice image through the disease form.
-2. Backend saves the file and normalizes image dimensions for the corresponding CNN/VGG-based model.
-3. Model predicts one of the target classes (for the selected disease module).
-4. App returns class label and confidence score in the report page.
+#### Hepatitis C
 
-### B) Kidney CT-type sample
+![](./media/image49.png)
 
-1. User uploads a kidney CT image.
-2. The kidney CNN model classifies into one of the supported classes:
-   - Kidney Cyst
-   - Normal
-   - Kidney Stone
-   - Kidney Tumor
-3. Result is shown as a formatted diagnosis string with confidence percentage.
+#### Pneumonia
 
-### Notes on interpretation
+![](./media/image50.png)
 
-- Predictions are **decision-support outputs**, not a clinical final diagnosis.
-- Confidence score reflects model certainty on trained distributions, not guaranteed real-world correctness.
-- Better image quality and correct modality (MRI/CT/X-ray as expected by each model) improves reliability.
+#### Kidney Disease
 
-## **Updated Installation and Execution (Local)** <a name="install"></a>
+![](./media/image51.png)
 
-Build and run on a local system:
+### Result for Kidney Disease
 
-1. Clone the repository:
-```sh
-git clone --recurse-submodules -j8 https://github.com/Aprameya05/DeepCare.git
-cd DeepCareX-main
-```
+![](./media/image52.png)
 
-2. Create and activate a virtual environment (recommended):
-```sh
-python -m venv .venv
-# Windows
-.venv\Scripts\activate
-# Linux/macOS
-source .venv/bin/activate
-```
-
-3. Install dependencies:
-```sh
-pip install flask tensorflow numpy pandas scikit-learn matplotlib scipy seaborn xgboost joblib
-```
-
-4. Run frontend website:
-```sh
-cd deepcarex-web
-npm install
-npm run dev
-```
-Open: `http://localhost:5173`
-
-## **One-Click Netlify Deployment**
-
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Aprameya05/DeepCare)
-
-This repo includes a root `netlify.toml` configured for the `deepcarex-web` app.
-
-After deploying, add this environment variable in Netlify site settings:
-
-- `VITE_GEMINI_API_KEY=your_api_key`
-
-Then trigger a redeploy.
+![](./media/image53.png)
 
 
 ## **Conclusion** <a name="con"></a>
@@ -598,11 +590,74 @@ Give data privacy and security top priority because the project will be working 
 The project can develop into a complete and trustworthy health prediction and diagnosis system by putting these improvements into place. Users will be given the information they need to make wise decisions about their health, it will link them together with qualified healthcare professionals, and it will help with illness early detection and prevention.
 
 
+## **References** <a name="ref"></a>
+
+\[1\]. M. Swathy and K. Saruladha, "Comparative study of classification and prediction of Cardio-Vascular Diseases (CVD) using Machine Learning and Deep Learning techniques", ICT Express 8 (2022) 109--116, Science Direct, 2022.
+
+\[2\]. P. Rani, R Kumar, N. M. O. S. Ahmed, A. Jain, "A decision support system for heart disease prediction based upon machine learning", Journal of Reliable Intelligent Environments, Springer Nature Switzerland AG 2021.
+
+\[3\]. S. Afzal, M. Maqsood, U. Khan, I. Mehmood, H. Nawaz, F. Aadil, O. Young Song, Y. Nam, "Alzheimer Disease Detection Techniques and Methods: A Review", International Journal of Interactive Multimedia and Artificial Intelligence, Vol. 6, Nº7, 2022.
+
+\[4\]. P. G. Brindha, M Kavinraj, P. Manivasakam, P. Prasanth, "Brain tumor detection from MRI images using deep learning Techniques", 2021 IOP Conf. Ser.: Mater. Sci. Eng. 1055 012115.
+
+\[5\]. Dheiver Santos and Ewerton Santos, "Brain Tumor Detection Using Deep Learning", 1BRIDGE -- Instituto de Tecnologia e Pesquisa, Estado / UF: Sergipe / SE Município: Aracaju Bairro: Getúlio Vargas Logradouro: Rua São Cristóvão Número: 1361 Complemento: CEP: 49.055-620.
+
+\[6\]. M. Jyotiyana and N. Kesswani, "Classification and prediction of Alzheimer's disease using multi-layer perceptron", Int. J. Reasoning-based Intelligent Systems, Vol. 12, No. 4, 2020.
+
+\[7\]. D. Yang, C. Martinez, L. Visuña, H. Khandhar, C. Bhatt & J. Carretero, "Detection and analysis of COVID‑19 in medical images using deep learning techniques", Scientific Reports, Nature Portfolio, (2021) 11:19638.
+
+\[8\]. D. Park, M. Park, H. Lee, Y. Kim, Y. Kim & Y. Hoon Park, "Development of machine learning model for diagnostic disease prediction based on laboratory tests", Scientific Reports, Nature Portfolio, (2021) 11:7567.
+
+\[9\]. R. Keniya, A. Khakharia, V. Shah, V. Gada, R. Manjalkar, T. Thaker, M. Warang, N. Mehendale, "Disease prediction from various symptoms using machine learning", SSRN.
+
+\[10\]. Ms. K. Saxena, R. Sharma, R. Kumar, R. Kumar, "Disease Prediction Using Machine Learning and Deep Learning", International Journal for Research in Applied Science & Engineering Technology (IJRASET) ISSN: 2321-9653; IC Value: 45.98; SJ Impact Factor: 7.538 Volume 10 Issue V May 2022.
+
+\[11\]. S. K. Sarangi, Pallamravi, Pallamravi, N. R. Das, N. B. Madhavi, Naveen P, K. Kumar, "Disease Prediction Using Novel Deep Learning Mechanisms", Journal of Pharmaceutical Negative Results, Volume 13, Special Issue 9, 2022.
+
+\[12\]. D. Varshini, K. Thakral, L. Agarwal, R. Nihjhawan, A. Mittal, "Pneumonia Detection Using CNN based Feature Extraction", Computer Science, Medicine 2019 IEEE International Conference on Electrical, Computer and Communication Technologies (ICECCT), 2019.
+
+\[13\]. D. Kumar G, S. Kumar G, Arumugaraj K, Mareeswari V, "Prediction of Cardiovascular Disease Using Machine Learning Algorithms", IEEE International Conference on Current Trends toward Converging Technologies, 2018.
+
+\[14\]. D. K. Rathore and P. K. Mannepalli, "Diseases prediction and classification using machine learning techniques", AIP Conference Proceedings 2424, 070001 (2022).
+
+\[15\]. R. Bharti, A. Khamparia, M. Shabaz, G. Dhiman, S. Pande, and P. Singh, "Prediction of Heart Disease Using a Combination of Machine Learning and Deep Learning", Computational Intelligence and Neuroscience Volume 2021, Article ID 8387680.
+
+\[16\]. M. O. Eden et al., "Artificial Intelligence-Based Ensemble Learning Model for Prediction of Hepatitis C Disease", Frontiers in Public Health, April 2022, Volume 10, Article 892371.
+
+\[17\]. Z. Yu, et al., "Popular deep learning algorithms for disease prediction: a review", Cluster Computing (2023) 26:1231--1251, Springer.
+
+\[18\]. Dr C K Gomathy, Mr. A. R. Naidu, "The Prediction of disease using Machine Learning", International Journal of Scientific Research in Engineering and Management (IJSREM) ,Volume: 05 Issue:10,Oct -- 2021.
+
+\[19\]. Santangelo, O.E.; Gentile, V.; Pizzo, S.; Giordano, D.; Cedrone, F. "Machine Learning and Prediction of Infectious Diseases: A Systematic Review". Mach. Learn. Knowl. Extr. 2023, 5, 175--198.
+
 ## **Project Presentation** <a name="ppt"></a>
 
 You can view the project presentation here:
 
 [Project Presentation PDF](./DeepCareX.pdf)
+
+## **Installation** <a name="install"></a>
+
+Build the project from source: (On a local System)
+
+1. Clone the DeepCareX.git repository:
+```sh
+❯ git clone --recurse-submodules -j8 https://github.com/sumony2j/DeepCareX.git
+```
+
+2. Navigate to the project directory:
+```sh
+❯ cd DeepCareX.git
+```
+
+3. Install the required dependencies: (**Follow for more details : requirment.txt**)
+```sh
+❯ pip3 install numpy pandas scikit-learn matplotlib os scipy seaborn xgboost joblib pickle sqlite3 tensorflow flask
+```
+4. Run the Application:
+```
+Follow the Instruction.txt file
+```
 
 ## **Docker Deployment** <a name=docker></a>
 
@@ -615,12 +670,12 @@ Ensure you have Docker installed. You can download and install Docker from [here
 1. Clone the repository:
 
    ```bash
-   git clone --recurse-submodules -j8 https://github.com/Aprameya05/DeepCare.git
+   git clone --recurse-submodules -j8 https://github.com/sumony2j/DeepCareX.git
    ```
 2. Navigate to the project directory:
 
    ```bash
-   cd DeepCareX-main
+   cd DeepCareX
    ```
 3. Build the Docker image:
 
@@ -655,4 +710,38 @@ Ensure you have Docker installed. You can download and install Docker from [here
    ```bash
    Open your web browser and go to http://localhost:5000
    ```
+
+##  Contributing <a name="contri"></a>
+
+Contributions are welcome! Here are several ways you can contribute:
+
+- **[Report Issues](https://github.com/sumony2j/DeepCareX.git/issues)**: Submit bugs found or log feature requests for the `DeepCareX.git` project.
+- **[Submit Pull Requests](https://github.com/sumony2j/DeepCareX.git/blob/main/CONTRIBUTING.md)**: Review open PRs, and submit your own PRs.
+- **[Join the Discussions](https://github.com/sumony2j/DeepCareX.git/discussions)**: Share your insights, provide feedback, or ask questions.
+
+<details closed>
+   
+<summary>Contributing Guidelines</summary>
+
+1. **Fork the Repository**: Start by forking the project repository to your github account.
+2. **Clone Locally**: Clone the forked repository to your local machine using a git client.
+   ```sh
+   git clone https://github.com/sumony2j/DeepCareX.git
+   ```
+3. **Create a New Branch**: Always work on a new branch, giving it a descriptive name.
+   ```sh
+   git checkout -b new-feature-x
+   ```
+4. **Make Your Changes**: Develop and test your changes locally.
+5. **Commit Your Changes**: Commit with a clear message describing your updates.
+   ```sh
+   git commit -m 'Implemented new feature x.'
+   ```
+6. **Push to github**: Push the changes to your forked repository.
+   ```sh
+   git push origin new-feature-x
+   ```
+7. **Submit a Pull Request**: Create a PR against the original project repository. Clearly describe the changes and their motivations.
+8. **Review**: Once your PR is reviewed and approved, it will be merged into the main branch. Congratulations on your contribution!
+</details>
 

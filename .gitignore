@@ -1,0 +1,15 @@
+# Virtual Environments
+.venv/
+env/
+venv/
+
+# Python Cache
+__pycache__/
+*.pyc
+
+# Local Test Files (optional script from earlier)
+test_leakage.py
+
+# Ignore raw data to save LFS bandwidth, ONLY track the models
+# Comment this out if you specifically want to push the Kaggle dataset images to GitHub
+Covid19-dataset/
